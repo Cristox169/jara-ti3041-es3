@@ -39,6 +39,29 @@ Se solicitó adaptar las vistas para que el catálogo, el detalle y el punto de 
 ### Ajustes realizados
 Se mantuvieron las imágenes y plantillas de la ES1. Se agregó el modelo, la migración, el registro en Admin, la fixture `productos.json` y las consultas ORM. También se ajustó el stock que superaba el máximo solicitado por la pauta.
 
+## Parte 1 - Registro ES3
+
+### Consulta 7 - CRUD web
+**Prompt:** "Implementa en el catálogo de CrisSteel un CRUD web completo para crear, editar y retirar productos desde el sitio, manteniendo el esquema normalizado de precio e inventario."
+
+**Resumen de la respuesta:** se propuso un `ModelForm` para `Producto`, rutas separadas para crear, editar y eliminar, y una capa de sincronización que guarda precio en `PrecioProducto` y diferencias de stock en `MovimientoInventario`.
+
+**Uso y ajustes:** se integró `ProductoForm`, se añadieron las vistas y rutas CRUD, se agregó confirmación JavaScript para retirar productos y se mantuvo el borrado lógico mediante `activo=False` para conservar el historial operacional.
+
+### Consulta 8 - Reportes ORM
+**Prompt:** "Agrega dos reportes al proyecto: un resumen agrupado por categoría con cálculos y un listado filtrado de stock crítico, ambos resueltos con el ORM y accesibles desde la navegación."
+
+**Resumen de la respuesta:** se usaron `annotate`, `Count`, `Avg`, `Sum`, `filter` y `order_by` en dos vistas con templates separados.
+
+**Uso y ajustes:** el primer reporte muestra cantidad, stock total y precio promedio por categoría; el segundo permite consultar productos bajo el punto de reorden o bajo un límite indicado en la URL.
+
+### Consulta 9 - Clientes y sesiones
+**Prompt:** "Crea un modelo ConsultaCliente con ModelForm, validaciones, confirmación y una funcionalidad de sesiones para los últimos productos visitados."
+
+**Resumen de la respuesta:** se definió un modelo relacionado opcionalmente con Producto, un formulario con validación de correo y longitudes mínimas, y una lista de tres productos guardada en `request.session`.
+
+**Uso y ajustes:** se registró `ConsultaCliente` en Admin, se incluyó CSRF en el formulario, se añadió la ruta Contacto y se mostró el historial de productos en la ficha de detalle.
+
 ## Parte 2 - Explicación personal
 
 **Esta sección debe ser escrita por el estudiante con sus propias palabras antes de entregar.**
