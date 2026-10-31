@@ -1,52 +1,50 @@
 # CrisSteel · CrisFerreterias
 
-Sistema Django integral para una ferretería, construido sobre el proyecto ES2 original y conectado a MariaDB mediante XAMPP. Cubre catálogo, punto de venta persistente, compras, inventario, logística, recursos humanos, nómina, producción y análisis financiero. La aplicación no usa SQLite: toda la información visible se consulta desde la base `CrisFerreterias`.
+Sistema Django integral para una ferretería, construido sobre el proyecto ES2 original. Cubre catálogo, punto de venta persistente, compras, inventario, logística, recursos humanos, nómina, producción y análisis financiero. La entrega conserva MariaDB como motor principal de la evaluación y añade un modo SQLite portátil para ejecutarla sin configuración previa.
 
-## Inicio rápido con XAMPP
+## Ejecución portátil
 
-En Windows, ejecuta `iniciar_crissteel.bat`. El iniciador crea el entorno virtual, instala las dependencias, inicia MariaDB de XAMPP, crea la base y el usuario, aplica las migraciones, carga los datos y abre automáticamente:
+En Windows, ejecuta `iniciar_portatil.bat`. El iniciador crea el entorno virtual, instala las dependencias, prepara la base local, carga los datos y abre automáticamente:
 
 - Sitio: <http://127.0.0.1:8000/>
 - Administración: <http://127.0.0.1:8000/admin/>
 
-También se puede preparar e iniciar manualmente:
+También se puede iniciar manualmente:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-powershell -ExecutionPolicy Bypass -File .\scripts\preparar_xampp.ps1
 .\.venv\Scripts\python.exe manage.py migrate
 .\.venv\Scripts\python.exe manage.py poblar_crisferreterias
 .\.venv\Scripts\python.exe manage.py runserver
 ```
 
-Al ejecutar `python manage.py runserver`, Django muestra el enlace <http://127.0.0.1:8000/> únicamente después de conectarse a XAMPP y activar el servidor. En Windows, la página también se abre automáticamente. El archivo `ABRIR_CRISSTEEL.url` permite volver a abrirla con doble clic mientras el servidor siga ejecutándose. Usa `python manage.py runserver --no-browser` si no deseas abrir el navegador.
+Al ejecutar `python manage.py runserver`, el propio `manage.py` muestra inmediatamente el enlace <http://127.0.0.1:8000/> y Django vuelve a mostrarlo cuando el puerto queda activo. En Windows, la página también se abre automáticamente. El archivo `ABRIR_CRISSTEEL.url` permite volver a abrirla con doble clic mientras el servidor siga ejecutándose. Usa `python manage.py runserver --no-browser` si no deseas abrir el navegador.
 
-## Base de datos MariaDB de XAMPP
+## Base de datos MariaDB
 
-- Motor comprobado: MariaDB 10.4.32 incluido en XAMPP.
+- Motor: MariaDB 11.4.3.
 - Base: `CrisFerreterias`.
-- Servidor: `127.0.0.1:3306`.
-- Usuario de la aplicación: `crisferreterias_app`.
+- Puerto local: `3307`, separado del MariaDB incluido en XAMPP.
 - Juego de caracteres: `utf8mb4`.
 - Configuración privada: `.env` (ignorada por Git).
 - Esquema normalizado: [`docs/normalizacion_5fn.md`](docs/normalizacion_5fn.md).
 - Consultas analíticas: [`connectBD/consultas.sql`](connectBD/consultas.sql).
 
-`Producto` no almacena precio ni stock. El precio vigente se obtiene desde `PrecioProducto` y el inventario se deriva de `MovimientoInventario`. Las imágenes Base64 están almacenadas en `Producto.imagen_base64`. Las relaciones multivaluadas están descompuestas mediante tablas puente y los documentos usan cabecera/detalle.
+`Producto` no almacena precio ni stock. El precio vigente se obtiene desde `PrecioProducto` y el inventario se deriva de `MovimientoInventario`. Las relaciones multivaluadas están descompuestas mediante tablas puente y los documentos usan cabecera/detalle.
 
-## Preparación de XAMPP
+## Inicio con MariaDB
 
 Desde la carpeta del proyecto:
 
 ```powershell
-.\scripts\preparar_xampp.ps1
+.\scripts\iniciar_mariadb.ps1
 .\.venv\Scripts\python.exe manage.py migrate
 .\.venv\Scripts\python.exe manage.py poblar_crisferreterias
 .\.venv\Scripts\python.exe manage.py runserver
 ```
 
-El script usa `C:\xampp` y la clave local de `root` configurada en XAMPP. Puedes cambiarla mediante la variable `XAMPP_ROOT_PASSWORD`. El SQL reproducible está en `crear_bd_xampp.sql`.
+O ejecutar `iniciar_crissteel.bat`, que verifica dependencias, inicia MariaDB, aplica migraciones y carga los datos sin duplicarlos.
 
 La barra superior incluye el botón **Administración**. En una base nueva, el comando de poblamiento crea este acceso local:
 
@@ -57,7 +55,7 @@ Estas credenciales son solo para desarrollo. Modifica `ADMIN_USERNAME`, `ADMIN_P
 
 ## Módulos
 
-- `/` — catálogo de 40 productos e imágenes obtenidos desde MariaDB.
+- `/` — catálogo de 40 productos obtenidos desde la base activa.
 - `/panel/` — indicadores generales.
 - `/punto-de-venta/` — venta real en base de datos y descuento transaccional de stock.
 - `/ventas/` — ingresos, costos y margen.
@@ -68,6 +66,17 @@ Estas credenciales son solo para desarrollo. Modifica `ADMIN_USERNAME`, `ADMIN_P
 - `/api/productos/` — API JSON derivada del esquema normalizado.
 - `/configuracion/` — motor, versión, base activa y accesos.
 - `/admin/` — CRUD completo de todas las entidades.
+
+## ES3: CRUD, reportes y clientes
+
+- `/productos/nuevo/` — crear productos desde el sitio.
+- `/productos/<id>/editar/` — editar productos, precio y stock desde el sitio.
+- `/productos/<id>/eliminar/` — retirar productos con confirmación y borrado lógico.
+- `/reportes/categorias/` — reporte agrupado con `Count`, `Avg` y `Sum` del ORM.
+- `/reportes/stock-critico/` — reporte filtrado y ordenado de stock bajo.
+- `/consultas/` — formulario `ModelForm` de clientes con validaciones y CSRF.
+
+La ficha de producto conserva los últimos tres productos visitados en la sesión del navegador.
 
 ## Verificación
 
