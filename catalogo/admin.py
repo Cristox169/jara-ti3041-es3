@@ -8,6 +8,7 @@ from .models import (
     CategoriaFinanciera,
     CentroCosto,
     Cliente,
+    ConsultaCliente,
     Compra,
     ComponenteReceta,
     ConsumoProduccion,
@@ -131,6 +132,19 @@ class ClienteAdmin(admin.ModelAdmin):
     list_display = ("rut", "nombre", "tipo", "email", "telefono")
     list_filter = ("tipo",)
     search_fields = ("rut", "nombre", "email")
+
+
+@admin.register(ConsultaCliente)
+class ConsultaClienteAdmin(admin.ModelAdmin):
+    list_display = ("fecha", "nombre", "correo", "producto_interes", "mensaje_corto")
+    list_filter = ("fecha",)
+    search_fields = ("nombre", "correo", "mensaje")
+    readonly_fields = ("fecha",)
+    date_hierarchy = "fecha"
+
+    @admin.display(description="Mensaje")
+    def mensaje_corto(self, obj):
+        return obj.mensaje[:70]
 
 
 @admin.register(Despacho)

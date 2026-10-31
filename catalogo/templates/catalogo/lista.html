@@ -43,6 +43,15 @@
     </article>
   </section>
 
+  <section class="container es3-feature-strip" aria-label="Funciones ES3">
+    <div class="es3-feature-heading"><span class="eyebrow"><i></i> Evaluación ES3</span><h2>Gestiona, analiza y conversa.</h2><p>El catálogo ahora incorpora CRUD web, reportes construidos con ORM y consultas de clientes guardadas en la base de datos.</p></div>
+    <div class="es3-feature-links">
+      <a class="glass-card" href="{% url 'catalogo:producto_crear' %}"><strong>CRUD del catálogo</strong><span>Crear y editar productos desde la web →</span></a>
+      <a class="glass-card" href="{% url 'catalogo:reporte_categorias' %}"><strong>Reportes ORM</strong><span>Ver categorías y stock crítico →</span></a>
+      <a class="glass-card" href="{% url 'catalogo:consulta_cliente' %}"><strong>Contacto</strong><span>Enviar una consulta validada →</span></a>
+    </div>
+  </section>
+
   <section class="container catalog-section" id="catalogo" aria-labelledby="catalog-title">
     <div class="section-heading">
       <div>
@@ -50,6 +59,14 @@
         <h2 id="catalog-title">Encuentra lo que necesitas.</h2>
       </div>
       <p>Selecciona una ficha para revisar sus características, precio y disponibilidad. Los productos se consultan desde la base de datos mediante el ORM de Django.</p>
+    </div>
+
+    <div class="crud-toolbar glass-card">
+      <div><span class="eyebrow"><i></i> Catálogo gestionable</span><strong>Administra tus productos desde el sitio.</strong></div>
+      <div class="toolbar-actions">
+        <a class="button button-primary" href="{% url 'catalogo:producto_crear' %}">Nuevo producto <span aria-hidden="true">+</span></a>
+        <a class="button button-outline" href="{% url 'catalogo:reporte_categorias' %}">Ver reportes</a>
+      </div>
     </div>
 
     <div class="filter-panel glass-card" aria-label="Filtros del catálogo">
@@ -91,6 +108,12 @@
             Ver ficha técnica
             <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
           </a>
+          <div class="crud-actions">
+            <a href="{% url 'catalogo:producto_editar' producto.id %}">Editar</a>
+            <form method="post" action="{% url 'catalogo:producto_eliminar' producto.id %}" onsubmit="return confirm('¿Retirar este producto del catálogo?');">
+              {% csrf_token %}<button type="submit">Eliminar</button>
+            </form>
+          </div>
         </article>
       {% endfor %}
     </div>

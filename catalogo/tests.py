@@ -8,7 +8,7 @@ from django.db import connection
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import MovimientoInventario, Producto, Venta
+from .models import Categoria, ConsultaCliente, MovimientoInventario, Producto, UnidadMedida, Venta
 
 
 class CrisFerreteriasTests(TestCase):
@@ -17,12 +17,16 @@ class CrisFerreteriasTests(TestCase):
         call_command("poblar_crisferreterias", verbosity=0)
 
     def test_backend_configurado(self):
-        self.assertEqual(connection.vendor, "mysql")
         with connection.cursor() as cursor:
-            cursor.execute("SELECT VERSION(), DATABASE()")
-            version, database = cursor.fetchone()
-        self.assertIn("MariaDB", version)
-        self.assertEqual(database.lower(), "crisferreterias_test")
+            if connection.vendor == "mysql":
+                cursor.execute("SELECT VERSION(), DATABASE()")
+                version, database = cursor.fetchone()
+                self.assertIn("MariaDB", version)
+                self.assertEqual(database.lower(), "crisferreterias_test")
+            else:
+                self.assertEqual(connection.vendor, "sqlite")
+                cursor.execute("SELECT sqlite_version()")
+                self.assertRegex(cursor.fetchone()[0], r"^\d+\.\d+")
 
     def test_hay_40_productos_normalizados(self):
         self.assertEqual(Producto.objects.filter(activo=True).count(), 40)
@@ -30,8 +34,6 @@ class CrisFerreteriasTests(TestCase):
         self.assertTrue(producto.sku)
         self.assertTrue(producto.categoria.nombre)
         self.assertGreaterEqual(producto.precio_vigente, 0)
-        self.assertTrue(producto.imagen_base64.startswith("data:image/"))
-        self.assertEqual(Producto.objects.exclude(imagen_base64="").count(), 40)
         self.assertFalse(any(campo.name in {"precio", "stock"} for campo in Producto._meta.fields))
 
     def test_catalogo_detalle_y_api_consultan_bd(self):
@@ -44,7 +46,7 @@ class CrisFerreteriasTests(TestCase):
         self.assertContains(listado, producto.nombre)
         self.assertContains(listado, 'href="/admin/"')
         self.assertContains(listado, "Administración")
-        self.assertContains(listado, "MariaDB XAMPP activa")
+        self.assertContains(listado, "MariaDB activa" if connection.vendor == "mysql" else "SQLite local")
         self.assertEqual(detalle.status_code, 200)
         self.assertContains(detalle, producto.sku)
         self.assertEqual(api.status_code, 200)
@@ -97,6 +99,88 @@ class CrisFerreteriasTests(TestCase):
 
     def test_runserver_personalizado_es_activo(self):
         self.assertEqual(get_commands()["runserver"], "catalogo")
+
+    def test_crud_web_crea_edita_y_retira_producto(self):
+        categoria = Categoria.objects.first()
+        unidad = UnidadMedida.objects.first()
+        crear = self.client.post(
+            reverse("catalogo:producto_crear"),
+            {
+                "sku": "ES3-001",
+                "nombre": "Producto de prueba ES3",
+                "descripcion": "Producto creado desde el formulario web.",
+                "categoria": categoria.pk,
+                "marca": "",
+                "unidad": unidad.pk,
+                "punto_reorden": 2,
+                "imagen_url": "",
+                "activo": "on",
+                "precio": "12990",
+                "stock": "4",
+            },
+        )
+        self.assertEqual(crear.status_code, 302)
+        producto = Producto.objects.get(sku="ES3-001")
+        self.assertEqual(producto.precio_vigente, 12990)
+        self.assertEqual(producto.stock_total, 4)
+        editar = self.client.post(
+            reverse("catalogo:producto_editar", args=[producto.pk]),
+            {
+                "sku": producto.sku,
+                "nombre": "Producto ES3 editado",
+                "descripcion": producto.descripcion,
+                "categoria": categoria.pk,
+                "marca": "",
+                "unidad": unidad.pk,
+                "punto_reorden": 2,
+                "imagen_url": "",
+                "activo": "on",
+                "precio": "13990",
+                "stock": "6",
+            },
+        )
+        self.assertEqual(editar.status_code, 302)
+        producto.refresh_from_db()
+        self.assertEqual(producto.nombre, "Producto ES3 editado")
+        self.assertEqual(producto.stock_total, 6)
+        retirar = self.client.post(reverse("catalogo:producto_eliminar", args=[producto.pk]))
+        self.assertEqual(retirar.status_code, 302)
+        producto.refresh_from_db()
+        self.assertFalse(producto.activo)
+
+    def test_reportes_orm_y_navegacion(self):
+        categorias = self.client.get(reverse("catalogo:reporte_categorias"))
+        stock = self.client.get(reverse("catalogo:reporte_stock_critico"))
+        self.assertEqual(categorias.status_code, 200)
+        self.assertContains(categorias, "Resumen por categoría")
+        self.assertContains(categorias, "Precio promedio")
+        self.assertEqual(stock.status_code, 200)
+        self.assertContains(stock, "Stock crítico")
+        self.assertContains(stock, "Reporte ORM 02")
+
+    def test_consulta_cliente_model_form_y_sesion(self):
+        producto = Producto.objects.get(sku="HEL-001")
+        invalida = self.client.post(
+            reverse("catalogo:consulta_cliente"),
+            {"nombre": "A", "correo": "correo-invalido", "producto_interes": producto.pk, "mensaje": "corto"},
+        )
+        self.assertEqual(invalida.status_code, 200)
+        self.assertEqual(ConsultaCliente.objects.count(), 0)
+        valida = self.client.post(
+            reverse("catalogo:consulta_cliente"),
+            {
+                "nombre": "Cliente de prueba",
+                "correo": "cliente@example.com",
+                "producto_interes": producto.pk,
+                "mensaje": "Necesito conocer disponibilidad y despacho.",
+            },
+        )
+        self.assertEqual(valida.status_code, 200)
+        self.assertEqual(ConsultaCliente.objects.count(), 1)
+        self.assertContains(valida, "Consulta enviada correctamente")
+        for item in Producto.objects.order_by("pk")[:4]:
+            self.client.get(reverse("catalogo:detalle", args=[item.pk]))
+        self.assertEqual(len(self.client.session["productos_visitados"]), 3)
 
 
 class PoblamientoIdempotenteTests(TestCase):

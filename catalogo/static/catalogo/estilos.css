@@ -575,3 +575,55 @@ html[data-theme="dark"] .cart-line-number { color: #ffd788; background: rgba(144
   .module-hero p { font-size: .94rem; }
   .module-title { align-items: flex-start; flex-direction: column; }
 }
+
+/* ES3: CRUD web, reportes ORM y contacto */
+.flash-messages { position: relative; z-index: 3; padding-top: 18px; }
+.es3-feature-strip { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.5fr); gap: 24px; align-items: stretch; padding-top: 28px; }
+.es3-feature-heading { padding: 24px 0; }
+.es3-feature-heading h2 { margin: 10px 0; font-size: clamp(1.8rem, 3.5vw, 3rem); line-height: 1; }
+.es3-feature-heading p { color: var(--muted); line-height: 1.6; }
+.es3-feature-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.es3-feature-links a { display: grid; align-content: center; gap: 8px; padding: 20px; color: var(--ink); text-decoration: none; transition: transform .2s ease, border-color .2s ease; }
+.es3-feature-links a:hover { transform: translateY(-3px); border-color: var(--accent); }
+.es3-feature-links span { color: var(--muted); font-size: .85rem; line-height: 1.35; }
+.flash-message { border: 1px solid var(--line); border-radius: 14px; padding: 13px 16px; background: var(--card); color: var(--ink); }
+.flash-message.success { border-color: rgba(31, 190, 135, .45); }
+.crud-toolbar, .report-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 24px 0; padding: 20px 22px; }
+.crud-toolbar > div:first-child { display: grid; gap: 7px; }
+.toolbar-actions, .report-links, .form-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.crud-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; font-size: .82rem; }
+.crud-actions a { color: var(--accent-strong); font-weight: 700; }
+.crud-actions form { margin: 0; }
+.crud-actions button { border: 0; background: transparent; color: #c75d4d; cursor: pointer; font: inherit; padding: 0; }
+.form-shell, .report-shell { padding: 70px 0 100px; }
+.form-shell h1, .report-shell h1 { margin: 10px 0 0; font-size: clamp(2.6rem, 6vw, 5.3rem); line-height: .96; }
+.django-form { padding: 28px; max-width: 980px; margin: 30px auto 0; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.form-field { display: grid; gap: 7px; }
+.field-wide { grid-column: 1 / -1; }
+.form-field label { color: var(--muted); font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.form-field input, .form-field select, .form-field textarea, .report-filter input { width: 100%; box-sizing: border-box; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--surface); color: var(--ink); font: inherit; }
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus, .report-filter input:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+.form-field input[type="checkbox"] { width: auto; justify-self: start; }
+.field-error, .form-errors { color: #c75d4d; font-size: .88rem; margin: 0; }
+.success-card { max-width: 760px; margin: 26px auto; padding: 26px; display: grid; gap: 12px; }
+.success-card strong { font-size: 1.4rem; }
+.table-card { margin-top: 24px; overflow-x: auto; }
+.table-card table { width: 100%; border-collapse: collapse; min-width: 680px; }
+.table-card th, .table-card td { padding: 15px 17px; border-bottom: 1px solid var(--line); text-align: left; }
+.table-card th { color: var(--muted); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
+.table-card td a { color: var(--accent-strong); font-weight: 700; }
+.report-filter { justify-content: flex-start; flex-wrap: wrap; }
+.report-filter label { color: var(--muted); font-weight: 700; }
+.report-filter input { width: 180px; }
+.recent-products { margin-top: 24px; }
+.recent-products a { display: flex; justify-content: space-between; gap: 16px; color: inherit; text-decoration: none; }
+.recent-products a span { color: var(--muted); }
+@media (max-width: 720px) {
+  .crud-toolbar, .report-filter { align-items: flex-start; flex-direction: column; }
+  .form-grid { grid-template-columns: 1fr; }
+  .field-wide { grid-column: auto; }
+  .form-shell, .report-shell { padding: 48px 0 70px; }
+  .es3-feature-strip { grid-template-columns: 1fr; }
+  .es3-feature-links { grid-template-columns: 1fr; }
+}

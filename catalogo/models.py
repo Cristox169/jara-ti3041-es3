@@ -621,3 +621,27 @@ class TransaccionFinanciera(models.Model):
         return f"{self.fecha:%Y-%m-%d} · {self.categoria} · ${self.monto:,.0f}"
 
 
+class ConsultaCliente(models.Model):
+    """Consulta recibida desde el formulario público del catálogo."""
+
+    nombre = models.CharField(max_length=100)
+    correo = models.EmailField()
+    mensaje = models.TextField()
+    producto_interes = models.ForeignKey(
+        Producto,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="consultas_clientes",
+    )
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha", "-pk"]
+        verbose_name = "consulta de cliente"
+        verbose_name_plural = "consultas de clientes"
+
+    def __str__(self):
+        return f"{self.nombre} · {self.correo} · {self.fecha:%Y-%m-%d}"
+
+

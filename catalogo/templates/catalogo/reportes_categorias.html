@@ -1,0 +1,11 @@
+{% extends 'catalogo/base.html' %}
+
+{% block title %}Reporte por categorías | CrisSteel{% endblock %}
+
+{% block content %}
+<section class="container report-shell">
+  <div class="section-heading"><div><span class="eyebrow"><i></i> Reporte ORM 01</span><h1>Resumen por categoría</h1></div><p>Conteo de productos, stock total y precio promedio calculados con <code>annotate</code>, <code>Count</code>, <code>Sum</code> y <code>Avg</code>.</p></div>
+  <div class="report-links"><a class="button button-primary" href="{% url 'catalogo:reporte_stock_critico' %}">Ver stock crítico</a><a class="button button-outline" href="{% url 'catalogo:lista' %}">Volver al catálogo</a></div>
+  <div class="table-card glass-card"><table><thead><tr><th>Categoría</th><th>Productos</th><th>Stock total</th><th>Precio promedio</th></tr></thead><tbody>{% for categoria in categorias %}<tr><td><strong>{{ categoria.nombre }}</strong></td><td>{{ categoria.cantidad_productos }}</td><td>{{ categoria.stock_total|floatformat:0 }}</td><td>${{ categoria.precio_promedio|floatformat:0 }}</td></tr>{% empty %}<tr><td colspan="4">No hay categorías activas.</td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endblock %}

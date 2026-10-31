@@ -1,0 +1,11 @@
+{% extends 'catalogo/base.html' %}
+
+{% block title %}Reporte de stock crítico | CrisSteel{% endblock %}
+
+{% block content %}
+<section class="container report-shell">
+  <div class="section-heading"><div><span class="eyebrow"><i></i> Reporte ORM 02</span><h1>Stock crítico</h1></div><p>Listado filtrado y ordenado desde el ORM. Por defecto muestra productos bajo su punto de reorden.</p></div>
+  <form method="get" class="report-filter glass-card"><label for="limite">Mostrar stock menor o igual a:</label><input id="limite" name="limite" type="number" min="0" step="1" value="{{ limite }}" placeholder="punto de reorden"><button class="button button-primary" type="submit">Filtrar</button><a class="button button-outline" href="{% url 'catalogo:reporte_stock_critico' %}">Restablecer</a></form>
+  <div class="table-card glass-card"><table><thead><tr><th>SKU</th><th>Producto</th><th>Categoría</th><th>Stock</th><th>Punto reorden</th><th>Acción</th></tr></thead><tbody>{% for producto in productos %}<tr><td>{{ producto.sku }}</td><td><strong>{{ producto.nombre }}</strong></td><td>{{ producto.categoria }}</td><td>{{ producto.stock }}</td><td>{{ producto.punto_reorden }}</td><td><a href="{% url 'catalogo:producto_editar' producto.id %}">Editar</a></td></tr>{% empty %}<tr><td colspan="6">No se encontraron productos para el filtro.</td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endblock %}

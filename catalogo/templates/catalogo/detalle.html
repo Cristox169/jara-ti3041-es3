@@ -41,11 +41,15 @@
         </ul>
 
         <a class="button button-dark" href="{% url 'catalogo:lista' %}#catalogo"><span aria-hidden="true">←</span> Volver al catálogo</a>
+        <a class="button button-outline" href="{% url 'catalogo:consulta_cliente' %}?producto={{ producto.id }}">Consultar por este producto</a>
       </div>
     </article>
     <div class="module-grid two detail-related">
       <article class="module-card"><div class="module-title"><div><span class="eyebrow">Disponibilidad</span><h2>Stock por bodega</h2></div></div><div class="compact-list">{% for bodega in stock_bodegas %}<p><span><b>{{ bodega.codigo }}</b>{{ bodega.nombre }}</span><strong>{{ bodega.stock|floatformat:0 }} {{ producto.unidad }}</strong></p>{% empty %}<p>Sin movimientos registrados.</p>{% endfor %}</div></article>
       <article class="module-card"><div class="module-title"><div><span class="eyebrow">Abastecimiento</span><h2>Proveedores</h2></div></div><div class="compact-list">{% for relacion in proveedores %}<p><span><b>{{ relacion.proveedor.razon_social }}</b>{{ relacion.plazo_entrega_dias }} días de entrega</span><strong>${{ relacion.costo_ultimo|floatformat:0 }}</strong></p>{% empty %}<p>Sin proveedores relacionados.</p>{% endfor %}</div></article>
     </div>
+    {% if productos_visitados|length > 1 %}
+      <article class="module-card recent-products"><div class="module-title"><div><span class="eyebrow">Sesión actual</span><h2>Últimos productos visitados</h2></div></div><div class="compact-list">{% for reciente in productos_visitados %}{% if reciente.pk != producto.id %}<p><a href="{% url 'catalogo:detalle' reciente.pk %}"><b>{{ reciente.nombre }}</b><span>{{ reciente.categoria.nombre }}</span></a></p>{% endif %}{% endfor %}</div></article>
+    {% endif %}
   </section>
 {% endblock %}

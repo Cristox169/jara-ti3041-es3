@@ -1,0 +1,24 @@
+{% extends 'catalogo/base.html' %}
+
+{% block title %}{{ modo }} producto | CrisSteel{% endblock %}
+
+{% block content %}
+<section class="container form-shell">
+  <div class="section-heading">
+    <div><span class="eyebrow"><i></i> CRUD web</span><h1>{{ modo }} producto</h1></div>
+    <p>Los campos de precio y stock se guardan en las tablas normalizadas de precios y movimientos de inventario.</p>
+  </div>
+  <form method="post" class="glass-card django-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-grid">
+      {% for field in form %}
+        <div class="form-field{% if field.errors %} has-error{% endif %}{% if field.name == 'descripcion' %} field-wide{% endif %}">
+          {{ field.label_tag }}{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="form-actions"><button class="button button-primary" type="submit">Guardar producto</button><a class="button button-outline" href="{% url 'catalogo:lista' %}">Cancelar</a></div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'catalogo/base.html' %}
+
+{% block title %}Contacto | CrisSteel{% endblock %}
+
+{% block content %}
+<section class="container form-shell contact-shell">
+  <div class="section-heading"><div><span class="eyebrow"><i></i> Atención al cliente</span><h1>Cuéntanos qué necesitas.</h1></div><p>Tu consulta queda registrada en la base de datos para que el equipo CrisSteel pueda responderte.</p></div>
+  {% if enviada %}<div class="success-card glass-card"><strong>Consulta enviada correctamente.</strong><p>Gracias por escribirnos. Revisaremos tu mensaje y te contactaremos pronto.</p><a class="button button-primary" href="{% url 'catalogo:lista' %}">Volver al catálogo</a></div>{% endif %}
+  <form method="post" class="glass-card django-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-grid">
+      {% for field in form %}<div class="form-field{% if field.name == 'mensaje' %} field-wide{% endif %}{% if field.errors %} has-error{% endif %}">{{ field.label_tag }}{{ field }}{% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}</div>{% endfor %}
+    </div>
+    <div class="form-actions"><button class="button button-primary" type="submit">Enviar consulta</button></div>
+  </form>
+</section>
+{% endblock %}

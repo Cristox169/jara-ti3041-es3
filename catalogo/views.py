@@ -1,15 +1,18 @@
 import json
 from decimal import Decimal
+from pathlib import Path
 
 from django.apps import apps
 from django.db import connection, transaction
-from django.db.models import Count, DecimalField, ExpressionWrapper, F, OuterRef, Q, Subquery, Sum, Value
+from django.contrib import messages
+from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, OuterRef, Q, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
+from .imagenes_productos import PRODUCT_IMAGE_DATA
 from .models import (
     Bodega,
     Categoria,
@@ -31,6 +34,7 @@ from .models import (
     TransaccionFinanciera,
     Venta,
 )
+from .forms import ConsultaClienteForm, ProductoForm, sincronizar_precio_y_stock
 
 
 DECIMAL_FIELD = DecimalField(max_digits=16, decimal_places=2)
@@ -102,7 +106,7 @@ def preparar_producto(producto):
         "categoria_corta": nombre_corto,
         "precio_formateado": f"${precio:,.0f}".replace(",", "."),
         "disponible": stock > 0,
-        "imagen_base64": producto.imagen_base64,
+        "imagen_base64": getattr(producto, "imagen_base64", "") or PRODUCT_IMAGE_DATA.get(producto.pk, ""),
         "unidad": producto.unidad.simbolo,
         "marca": producto.marca.nombre if producto.marca else "Sin marca",
         "punto_reorden": producto.punto_reorden,
@@ -136,12 +140,75 @@ def preparar_contexto_catalogo():
             .count(),
         },
         "categorias": preparar_categorias(),
-        "origen_datos": "MariaDB XAMPP · CrisFerreterias · Django ORM",
+        "origen_datos": (
+            "MariaDB · CrisFerreterias · Django ORM"
+            if connection.vendor == "mysql"
+            else "SQLite local · CrisFerreterias · Django ORM"
+        ),
     }
 
 
 def lista_productos(request):
     return render(request, "catalogo/lista.html", preparar_contexto_catalogo())
+
+
+def producto_crear(request):
+    if request.method == "POST":
+        form = ProductoForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                producto = form.save()
+                sincronizar_precio_y_stock(producto, form.cleaned_data["precio"], form.cleaned_data["stock"])
+            messages.success(request, f"Producto {producto.nombre} creado correctamente.")
+            return redirect("catalogo:lista")
+    else:
+        form = ProductoForm(initial={"activo": True, "stock": 0, "precio": 0})
+    return render(request, "catalogo/producto_form.html", {"form": form, "modo": "Crear"})
+
+
+def producto_editar(request, producto_id):
+    producto = get_object_or_404(Producto, pk=producto_id)
+    if request.method == "POST":
+        form = ProductoForm(request.POST, instance=producto)
+        if form.is_valid():
+            with transaction.atomic():
+                producto = form.save()
+                sincronizar_precio_y_stock(producto, form.cleaned_data["precio"], form.cleaned_data["stock"])
+            messages.success(request, f"Producto {producto.nombre} actualizado correctamente.")
+            return redirect("catalogo:lista")
+    else:
+        form = ProductoForm(instance=producto)
+    return render(
+        request,
+        "catalogo/producto_form.html",
+        {"form": form, "producto": producto, "modo": "Editar"},
+    )
+
+
+@require_POST
+def producto_eliminar(request, producto_id):
+    producto = get_object_or_404(Producto, pk=producto_id)
+    producto.activo = False
+    producto.save(update_fields=["activo", "actualizado"])
+    messages.success(request, f"Producto {producto.nombre} retirado del catálogo.")
+    return redirect("catalogo:lista")
+
+
+@require_http_methods(["GET", "POST"])
+def consulta_cliente(request):
+    if request.method == "POST":
+        form = ConsultaClienteForm(request.POST)
+        if form.is_valid():
+            consulta = form.save()
+            messages.success(request, f"Gracias, {consulta.nombre}. Recibimos tu consulta.")
+            return render(request, "catalogo/consulta_cliente.html", {"form": ConsultaClienteForm(), "enviada": True})
+    else:
+        initial = {}
+        producto_id = request.GET.get("producto")
+        if producto_id and Producto.objects.filter(pk=producto_id, activo=True).exists():
+            initial["producto_interes"] = producto_id
+        form = ConsultaClienteForm(initial=initial)
+    return render(request, "catalogo/consulta_cliente.html", {"form": form})
 
 
 def punto_venta(request):
@@ -160,6 +227,16 @@ def detalle_producto(request, producto_id):
         .annotate(stock=Sum("movimientos__cantidad"))
         .order_by("codigo")
     )
+    visitados = request.session.get("productos_visitados", [])
+    visitados = [int(pk) for pk in visitados if str(pk).isdigit() and int(pk) != producto.pk]
+    visitados.insert(0, producto.pk)
+    visitados = visitados[:3]
+    request.session["productos_visitados"] = visitados
+    recientes = list(
+        Producto.objects.filter(pk__in=visitados, activo=True)
+        .select_related("categoria")
+        .order_by("nombre")
+    )
     return render(
         request,
         "catalogo/detalle.html",
@@ -167,6 +244,7 @@ def detalle_producto(request, producto_id):
             "producto": preparar_producto(producto),
             "stock_bodegas": stock_bodegas,
             "proveedores": producto.proveedores_producto.select_related("proveedor"),
+            "productos_visitados": recientes,
         },
     )
 
@@ -282,18 +360,81 @@ def finanzas(request):
 
 def configuracion(request):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT VERSION(), DATABASE()")
-        version, base = cursor.fetchone()
+        if connection.vendor == "mysql":
+            cursor.execute("SELECT VERSION(), DATABASE()")
+            version, base = cursor.fetchone()
+            motor = "MariaDB"
+            caracteristicas = "utf8mb4 · transacciones"
+        else:
+            cursor.execute("SELECT sqlite_version()")
+            version = f"SQLite {cursor.fetchone()[0]}"
+            base = Path(connection.settings_dict["NAME"]).name
+            motor = "SQLite"
+            caracteristicas = "archivo local · transacciones"
     return render(
         request,
         "catalogo/configuracion.html",
         {
-            "motor": "MariaDB XAMPP",
+            "motor": motor,
             "version": version,
             "base": base,
-            "caracteristicas": "utf8mb4 · transacciones",
+            "caracteristicas": caracteristicas,
             "modelos": len(list(apps.get_app_config("catalogo").get_models())),
         },
+    )
+
+
+def reporte_categorias(request):
+    """Reporte 1: agrupación con Count, Avg y Sum resueltos por el ORM."""
+    stock_por_categoria = (
+        MovimientoInventario.objects.filter(
+            producto__categoria=OuterRef("pk"), producto__activo=True
+        )
+        .values("producto__categoria")
+        .annotate(total=Sum("cantidad"))
+        .values("total")[:1]
+    )
+    categorias = (
+        Categoria.objects.filter(activa=True)
+        .annotate(
+            cantidad_productos=Count(
+                "productos", filter=Q(productos__activo=True), distinct=True
+            ),
+            stock_total=Coalesce(
+                Subquery(stock_por_categoria, output_field=DECIMAL_FIELD),
+                Value(Decimal("0")),
+                output_field=DECIMAL_FIELD,
+            ),
+            precio_promedio=Coalesce(
+                Avg(
+                    "productos__precios__monto",
+                    filter=Q(productos__activo=True, productos__precios__lista__activa=True),
+                ),
+                Value(Decimal("0")),
+                output_field=DECIMAL_FIELD,
+            ),
+        )
+        .order_by("nombre")
+    )
+    return render(request, "catalogo/reportes_categorias.html", {"categorias": categorias})
+
+
+def reporte_stock_critico(request):
+    """Reporte 2: filtro y orden de productos bajo su punto de reorden."""
+    limite = request.GET.get("limite", "")
+    productos = productos_con_indicadores()
+    if limite:
+        try:
+            productos = productos.filter(stock_db__lte=Decimal(limite))
+        except Exception:
+            limite = ""
+    else:
+        productos = productos.filter(stock_db__lte=F("punto_reorden"))
+    productos = productos.order_by("stock_db", "nombre")
+    return render(
+        request,
+        "catalogo/reportes_stock.html",
+        {"productos": [preparar_producto(producto) for producto in productos], "limite": limite},
     )
 
 
