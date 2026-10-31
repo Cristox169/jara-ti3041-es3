@@ -103,11 +103,13 @@
           <div class="product-meta">
             <span><small>Precio</small><strong>{{ producto.precio_formateado }}</strong></span>
             <span><small>Stock</small><strong>{{ producto.stock }} un.</strong></span>
+            <span><small>Mínimo / ideal</small><strong>{{ producto.stock_minimo }} / {{ producto.stock_ideal }}</strong></span>
           </div>
           <a class="detail-link" href="{% url 'catalogo:detalle' producto.id %}">
             Ver ficha técnica
             <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
           </a>
+          {% if producto.disponible %}<form class="cart-add-form" method="post" action="{% url 'catalogo:carrito_agregar' producto.id %}">{% csrf_token %}<button class="button button-outline" type="submit">Agregar al carro <span aria-hidden="true">+</span></button></form>{% endif %}
           <div class="crud-actions">
             <a href="{% url 'catalogo:producto_editar' producto.id %}">Editar</a>
             <form method="post" action="{% url 'catalogo:producto_eliminar' producto.id %}" onsubmit="return confirm('¿Retirar este producto del catálogo?');">

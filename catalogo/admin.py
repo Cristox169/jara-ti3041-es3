@@ -24,6 +24,10 @@ from .models import (
     Marca,
     MetodoPago,
     MovimientoInventario,
+    Cotizacion,
+    DetalleCotizacion,
+    NotaCredito,
+    OrdenTrabajo,
     OrdenProduccion,
     PagoVenta,
     PeriodoNomina,
@@ -52,7 +56,7 @@ class ProveedorProductoInline(admin.TabularInline):
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ("sku", "nombre", "categoria", "marca", "precio_actual", "stock_actual", "activo")
+    list_display = ("sku", "nombre", "categoria", "precio_actual", "stock_actual", "stock_minimo", "stock_ideal", "brecha", "activo")
     list_filter = ("categoria", "marca", "activo")
     search_fields = ("sku", "nombre", "descripcion")
     list_select_related = ("categoria", "marca", "unidad")
@@ -66,6 +70,18 @@ class ProductoAdmin(admin.ModelAdmin):
     @admin.display(description="Stock")
     def stock_actual(self, obj):
         return obj.stock_total
+
+    @admin.display(description="Mínimo")
+    def stock_minimo(self, obj):
+        return obj.stock_minimo
+
+    @admin.display(description="Ideal")
+    def stock_ideal(self, obj):
+        return obj.stock_ideal
+
+    @admin.display(description="Brecha")
+    def brecha(self, obj):
+        return obj.brecha_stock
 
 
 @admin.register(Venta)
@@ -147,6 +163,31 @@ class ConsultaClienteAdmin(admin.ModelAdmin):
         return obj.mensaje[:70]
 
 
+@admin.register(Cotizacion)
+class CotizacionAdmin(admin.ModelAdmin):
+    list_display = ("numero", "cliente", "fecha", "estado", "vigencia_dias", "total_cotizacion")
+    list_filter = ("estado", "fecha")
+    search_fields = ("numero", "cliente__nombre", "cliente__rut")
+
+    @admin.display(description="Total")
+    def total_cotizacion(self, obj):
+        return obj.total
+
+
+@admin.register(OrdenTrabajo)
+class OrdenTrabajoAdmin(admin.ModelAdmin):
+    list_display = ("numero", "titulo", "cliente", "prioridad", "estado", "fecha_solicitud", "costo_estimado")
+    list_filter = ("estado", "prioridad", "fecha_solicitud")
+    search_fields = ("numero", "titulo", "cliente__nombre")
+
+
+@admin.register(NotaCredito)
+class NotaCreditoAdmin(admin.ModelAdmin):
+    list_display = ("numero", "venta", "cliente", "fecha", "monto", "estado")
+    list_filter = ("estado", "fecha")
+    search_fields = ("numero", "venta__numero", "cliente__nombre", "motivo")
+
+
 @admin.register(Despacho)
 class DespachoAdmin(admin.ModelAdmin):
     list_display = ("numero", "transportista", "fecha", "estado", "costo")
@@ -175,6 +216,7 @@ admin.site.register(
         DespachoVenta,
         DetalleCompra,
         DetalleVenta,
+        DetalleCotizacion,
         LiquidacionSueldo,
         ListaPrecio,
         Marca,

@@ -1,12 +1,15 @@
 import json
+from decimal import Decimal
 
 from django.contrib import admin
 from django.contrib.auth import authenticate
 from django.core.management import call_command
 from django.core.management import get_commands
 from django.db import connection
+from django.db.models import Avg, Q, Sum
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import Categoria, ConsultaCliente, MovimientoInventario, Producto, UnidadMedida, Venta
 
@@ -15,6 +18,9 @@ class CrisFerreteriasTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("poblar_crisferreterias", verbosity=0)
+
+    def setUp(self):
+        self.assertTrue(self.client.login(username="Cris", password="2598"))
 
     def test_backend_configurado(self):
         with connection.cursor() as cursor:
@@ -35,6 +41,32 @@ class CrisFerreteriasTests(TestCase):
         self.assertTrue(producto.categoria.nombre)
         self.assertGreaterEqual(producto.precio_vigente, 0)
         self.assertFalse(any(campo.name in {"precio", "stock"} for campo in Producto._meta.fields))
+        self.assertGreaterEqual(producto.stock_ideal, producto.stock_minimo)
+
+    def test_login_y_expiracion_por_inactividad(self):
+        self.client.logout()
+        anonimo = self.client.get("/")
+        self.assertRedirects(anonimo, "/login/?next=/")
+        for ruta in ("/panel/", "/punto-de-venta/", "/abastecimiento/", "/cotizaciones/", "/api/productos/"):
+            with self.subTest(ruta=ruta):
+                respuesta = self.client.get(ruta)
+                self.assertEqual(respuesta.status_code, 302)
+                self.assertTrue(respuesta["Location"].startswith("/login/?next="))
+        login = self.client.get("/login/")
+        self.assertEqual(login.status_code, 200)
+        self.assertContains(login, "Bienvenido de vuelta.")
+        self.assertContains(login, "7 minutos")
+        self.assertTrue(self.client.login(username="Cris", password="2598"))
+        session = self.client.session
+        session["crissteel_last_activity"] = timezone.now().timestamp() - 421
+        session.save()
+        expirado = self.client.get("/")
+        self.assertRedirects(expirado, "/login/?expired=1&next=/")
+
+    def test_documentos_comerciales_y_abastecimiento_responden(self):
+        for nombre in ("carrito", "cotizaciones", "ordenes_trabajo", "notas_credito", "abastecimiento"):
+            with self.subTest(nombre=nombre):
+                self.assertEqual(self.client.get(reverse(f"catalogo:{nombre}")).status_code, 200)
 
     def test_catalogo_detalle_y_api_consultan_bd(self):
         producto = Producto.objects.get(sku="HEL-001")
@@ -92,10 +124,11 @@ class CrisFerreteriasTests(TestCase):
         self.assertIn(Venta, admin.site._registry)
 
     def test_poblamiento_crea_superusuario(self):
-        usuario = authenticate(username="admin", password="jarax")
+        usuario = authenticate(username="Cris", password="2598")
         self.assertIsNotNone(usuario)
         self.assertTrue(usuario.is_staff)
         self.assertTrue(usuario.is_superuser)
+        self.assertIsNone(authenticate(username="admin", password="jarax"))
 
     def test_runserver_personalizado_es_activo(self):
         self.assertEqual(get_commands()["runserver"], "catalogo")
@@ -113,6 +146,8 @@ class CrisFerreteriasTests(TestCase):
                 "marca": "",
                 "unidad": unidad.pk,
                 "punto_reorden": 2,
+                "stock_minimo": 2,
+                "stock_ideal": 8,
                 "imagen_url": "",
                 "activo": "on",
                 "precio": "12990",
@@ -133,6 +168,8 @@ class CrisFerreteriasTests(TestCase):
                 "marca": "",
                 "unidad": unidad.pk,
                 "punto_reorden": 2,
+                "stock_minimo": 2,
+                "stock_ideal": 8,
                 "imagen_url": "",
                 "activo": "on",
                 "precio": "13990",
@@ -158,6 +195,45 @@ class CrisFerreteriasTests(TestCase):
         self.assertContains(stock, "Stock crítico")
         self.assertContains(stock, "Reporte ORM 02")
 
+        admin_login = self.client.login(username="Cris", password="2598")
+        self.assertTrue(admin_login)
+        admin_productos = self.client.get(reverse("admin:catalogo_producto_changelist"))
+        self.assertEqual(admin_productos.status_code, 200)
+        total_admin = admin_productos.context["cl"].result_count
+
+        categorias_orm = categorias.context["categorias"]
+        total_reporte = sum(item.cantidad_productos for item in categorias_orm)
+        self.assertEqual(total_reporte, total_admin)
+
+        for categoria in categorias_orm:
+            productos = Producto.objects.filter(categoria=categoria, activo=True)
+            esperado_cantidad = productos.count()
+            esperado_stock = sum((producto.stock_total for producto in productos), Decimal("0"))
+            esperado_promedio = productos.aggregate(
+                promedio=Avg(
+                    "precios__monto",
+                    filter=Q(precios__lista__activa=True),
+                )
+            )["promedio"]
+            self.assertEqual(categoria.cantidad_productos, esperado_cantidad)
+            self.assertEqual(categoria.stock_total, esperado_stock)
+            self.assertEqual(categoria.precio_promedio, esperado_promedio)
+
+        criticos_reportados = stock.context["productos"]
+        criticos_reportados_ids = {item["id"] for item in criticos_reportados}
+        stock_por_producto = (
+            MovimientoInventario.objects.filter(producto__activo=True)
+            .values("producto_id")
+            .annotate(total=Sum("cantidad"))
+        )
+        stock_por_producto = {fila["producto_id"]: fila["total"] for fila in stock_por_producto}
+        criticos_esperados = {
+            producto.pk
+            for producto in Producto.objects.filter(activo=True)
+            if stock_por_producto.get(producto.pk, Decimal("0")) < producto.stock_minimo
+        }
+        self.assertEqual(criticos_reportados_ids, criticos_esperados)
+
     def test_consulta_cliente_model_form_y_sesion(self):
         producto = Producto.objects.get(sku="HEL-001")
         invalida = self.client.post(
@@ -166,6 +242,15 @@ class CrisFerreteriasTests(TestCase):
         )
         self.assertEqual(invalida.status_code, 200)
         self.assertEqual(ConsultaCliente.objects.count(), 0)
+        self.assertContains(invalida, "Indica tu nombre completo.")
+        self.assertContains(invalida, "Introduzca una")
+        self.assertContains(invalida, "El mensaje debe tener al menos 10 caracteres.")
+
+        campos_vacios = self.client.post(reverse("catalogo:consulta_cliente"), {})
+        self.assertEqual(campos_vacios.status_code, 200)
+        self.assertContains(campos_vacios, "Este campo es obligatorio.")
+        self.assertEqual(ConsultaCliente.objects.count(), 0)
+
         valida = self.client.post(
             reverse("catalogo:consulta_cliente"),
             {

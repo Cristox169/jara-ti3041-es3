@@ -27,7 +27,7 @@ Se solicitó adaptar las vistas para que el catálogo, el detalle y el punto de 
 
 **Resumen de la respuesta:** se reutilizó la interfaz modular de CrisSteel mostrada en las capturas: encabezado, navegación, héroes oscuros, fondo cuadriculado, tarjetas de indicadores, tablas, catálogo visual, punto de venta y pie de página. Para que la misma interfaz pudiera abrirse sin instalar un servidor de base de datos, se añadió un modo SQLite local sin quitar la configuración MariaDB de la evaluación.
 
-**Uso y ajustes:** se incorporó detección del motor activo, etiquetas coherentes en pantalla, una vista de configuración compatible con ambos motores y el iniciador `iniciar_portatil.bat`. También se preparó una base local con los datos integrales y el superusuario solicitado, y se verificaron las rutas principales en escritorio y móvil. El propio `manage.py` muestra el enlace antes de cargar Django; el comando `runserver` vuelve a mostrarlo cuando el puerto queda activo y lo abre automáticamente en el navegador. También se añadió el acceso directo `ABRIR_CRISSTEEL.url`.
+**Uso y ajustes:** se incorporó detección del motor activo, etiquetas coherentes en pantalla y una vista de configuración compatible con ambos motores. También se preparó una base local con los datos integrales y se verificaron las rutas principales en escritorio y móvil. El propio `manage.py` muestra el enlace antes de cargar Django; el comando `runserver` vuelve a mostrarlo cuando el puerto queda activo.
 
 ### Consulta 6 - El enlace aparece pero la página no abre
 **Prompt:** "Ahora está el link, pero no puedo acceder a la página que hiciste."

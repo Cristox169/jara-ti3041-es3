@@ -20,13 +20,17 @@ from .models import (
     CentroCosto,
     Cliente,
     Compra,
+    Cotizacion,
     ContratoLaboral,
+    DetalleCotizacion,
     DetalleCompra,
     DetalleVenta,
     Empleado,
     MetodoPago,
     MovimientoInventario,
+    NotaCredito,
     OrdenProduccion,
+    OrdenTrabajo,
     PagoVenta,
     PrecioProducto,
     Producto,
@@ -34,7 +38,14 @@ from .models import (
     TransaccionFinanciera,
     Venta,
 )
-from .forms import ConsultaClienteForm, ProductoForm, sincronizar_precio_y_stock
+from .forms import (
+    ConsultaClienteForm,
+    CotizacionForm,
+    NotaCreditoForm,
+    OrdenTrabajoForm,
+    ProductoForm,
+    sincronizar_precio_y_stock,
+)
 
 
 DECIMAL_FIELD = DecimalField(max_digits=16, decimal_places=2)
@@ -109,7 +120,11 @@ def preparar_producto(producto):
         "imagen_base64": getattr(producto, "imagen_base64", "") or PRODUCT_IMAGE_DATA.get(producto.pk, ""),
         "unidad": producto.unidad.simbolo,
         "marca": producto.marca.nombre if producto.marca else "Sin marca",
-        "punto_reorden": producto.punto_reorden,
+        "punto_reorden": producto.stock_minimo,
+        "stock_minimo": producto.stock_minimo,
+        "stock_ideal": producto.stock_ideal,
+        "brecha_stock": max(Decimal(producto.stock_ideal) - Decimal(stock), Decimal("0")),
+        "requiere_reposicion": Decimal(stock) < producto.stock_minimo,
     }
 
 
@@ -146,6 +161,19 @@ def preparar_contexto_catalogo():
             else "SQLite local · CrisFerreterias · Django ORM"
         ),
     }
+
+
+def insight_dashboard(productos):
+    """Indicadores pequeños para los carruseles de decisión."""
+    filas = [preparar_producto(producto) for producto in productos]
+    brecha = sum((fila["brecha_stock"] for fila in filas), Decimal("0"))
+    criticos = [fila for fila in filas if fila["requiere_reposicion"]]
+    return [
+        {"label": "Productos bajo mínimo", "value": len(criticos), "detail": "Reponer primero", "tone": "danger"},
+        {"label": "Brecha al stock ideal", "value": f"{brecha:,.0f}".replace(",", "."), "detail": "Unidades sugeridas", "tone": "warning"},
+        {"label": "Cobertura saludable", "value": len(filas) - len(criticos), "detail": "Productos sobre mínimo", "tone": "success"},
+        {"label": "Categorías activas", "value": Categoria.objects.filter(activa=True, productos__activo=True).distinct().count(), "detail": "Segmentos de compra", "tone": "info"},
+    ]
 
 
 def lista_productos(request):
@@ -217,6 +245,59 @@ def punto_venta(request):
     return render(request, "catalogo/punto_venta.html", contexto)
 
 
+@require_POST
+def carrito_agregar(request, producto_id):
+    producto = get_object_or_404(Producto, pk=producto_id, activo=True)
+    carrito = request.session.get("carrito", {})
+    actual = int(carrito.get(str(producto.pk), 0))
+    carrito[str(producto.pk)] = min(actual + 1, int(producto.stock_total))
+    request.session["carrito"] = carrito
+    request.session.modified = True
+    messages.success(request, f"{producto.nombre} fue agregado al carro.")
+    return redirect("catalogo:carrito")
+
+
+@require_POST
+def carrito_actualizar(request):
+    carrito = request.session.get("carrito", {})
+    for clave, valor in request.POST.items():
+        if not clave.startswith("cantidad_"):
+            continue
+        producto_id = clave.removeprefix("cantidad_")
+        try:
+            cantidad = max(int(valor), 0)
+        except (TypeError, ValueError):
+            cantidad = 0
+        if cantidad:
+            producto = Producto.objects.filter(pk=producto_id, activo=True).first()
+            if producto:
+                carrito[producto_id] = min(cantidad, int(producto.stock_total))
+        else:
+            carrito.pop(producto_id, None)
+    request.session["carrito"] = carrito
+    request.session.modified = True
+    messages.success(request, "Carro actualizado correctamente.")
+    return redirect("catalogo:carrito")
+
+
+def carrito(request):
+    carrito = request.session.get("carrito", {})
+    productos = productos_con_indicadores().filter(pk__in=carrito.keys())
+    items = []
+    total = Decimal("0")
+    total_unidades = 0
+    for producto in productos:
+        data = preparar_producto(producto)
+        cantidad = min(int(carrito.get(str(producto.pk), 0)), max(int(data["stock"]), 0))
+        if not cantidad:
+            continue
+        subtotal = Decimal(data["precio"]) * cantidad
+        items.append({"producto": data, "cantidad": cantidad, "precio": data["precio"], "subtotal": subtotal})
+        total += subtotal
+        total_unidades += cantidad
+    return render(request, "catalogo/carrito.html", {"items": items, "total": total, "total_unidades": total_unidades})
+
+
 def detalle_producto(request, producto_id):
     producto = get_object_or_404(
         productos_con_indicadores().prefetch_related("proveedores_producto__proveedor"),
@@ -251,6 +332,20 @@ def detalle_producto(request, producto_id):
 
 def panel(request):
     productos = productos_con_indicadores()
+    categoria = request.GET.get("categoria", "")
+    solo_brecha = request.GET.get("solo_brecha") == "1"
+    if categoria:
+        productos = productos.filter(categoria_id=categoria)
+    if solo_brecha:
+        productos = productos.filter(stock_db__lt=F("stock_minimo"))
+    chart_categorias = []
+    for categoria_item in Categoria.objects.filter(activa=True).order_by("nombre"):
+        categoria_productos = list(productos.filter(categoria=categoria_item))
+        stock = sum((Decimal(producto.stock_db or 0) for producto in categoria_productos), Decimal("0"))
+        chart_categorias.append({"nombre": categoria_item.nombre, "stock": stock})
+    max_stock = max((item["stock"] for item in chart_categorias), default=Decimal("0"))
+    for item in chart_categorias:
+        item["porcentaje"] = int((item["stock"] / max_stock * 100) if max_stock else 0)
     lineas = DetalleVenta.objects.exclude(venta__estado=Venta.Estado.ANULADA)
     ingresos = suma_lineas(lineas, "precio_unitario")
     costos = suma_lineas(lineas, "costo_unitario")
@@ -266,8 +361,16 @@ def panel(request):
             "ingresos": ingresos,
             "margen": ingresos - costos,
             "empleados": Empleado.objects.filter(activo=True).count(),
-            "stock_bajo": productos.filter(stock_db__lte=F("punto_reorden")).order_by("stock_db")[:8],
+            "stock_bajo": [
+                preparar_producto(producto)
+                for producto in productos.filter(stock_db__lt=F("stock_minimo")).order_by("stock_db")[:8]
+            ],
             "ultimas_ventas": Venta.objects.select_related("cliente").order_by("-fecha")[:8],
+            "insights": insight_dashboard(productos),
+            "categorias_filtro": Categoria.objects.filter(activa=True).order_by("nombre"),
+            "categoria_filtro": categoria,
+            "solo_brecha": solo_brecha,
+            "chart_categorias": chart_categorias,
         },
     )
 
@@ -289,6 +392,107 @@ def ventas(request):
     )
 
 
+def abastecimiento(request):
+    productos = productos_con_indicadores().order_by("stock_db", "nombre")
+    termino = request.GET.get("q", "").strip()
+    categoria = request.GET.get("categoria", "")
+    solo_brecha = request.GET.get("solo_brecha") == "1"
+    if termino:
+        productos = productos.filter(Q(nombre__icontains=termino) | Q(sku__icontains=termino))
+    if categoria:
+        productos = productos.filter(categoria_id=categoria)
+    if solo_brecha:
+        productos = productos.filter(stock_db__lt=F("stock_minimo"))
+    filas = []
+    for producto in productos:
+        fila = preparar_producto(producto)
+        proveedor = (
+            ProductoProveedor.objects.filter(producto=producto)
+            .select_related("proveedor")
+            .order_by("-preferente", "plazo_entrega_dias", "costo_ultimo")
+            .first()
+        )
+        fila["proveedor"] = proveedor.proveedor.razon_social if proveedor else ""
+        fila["plazo"] = proveedor.plazo_entrega_dias if proveedor else ""
+        filas.append(fila)
+    return render(
+        request,
+        "catalogo/abastecimiento.html",
+        {
+            "filas": filas,
+            "insights": insight_dashboard(productos),
+            "categorias": Categoria.objects.filter(activa=True).order_by("nombre"),
+            "filtros": {"q": termino, "categoria": categoria, "solo_brecha": solo_brecha},
+        },
+    )
+
+
+def cotizaciones(request):
+    if request.method == "POST":
+        form = CotizacionForm(request.POST)
+        if form.is_valid():
+            cotizacion = form.save(commit=False)
+            cotizacion.numero = f"COT-{timezone.now():%Y%m%d%H%M%S%f}"[:24]
+            cotizacion.creado_por = request.user
+            cotizacion.save()
+            producto = form.cleaned_data.get("producto")
+            if producto:
+                DetalleCotizacion.objects.create(
+                    cotizacion=cotizacion,
+                    producto=producto,
+                    cantidad=form.cleaned_data["cantidad"],
+                    precio_unitario=form.cleaned_data["precio_unitario"],
+                )
+            messages.success(request, f"Cotización {cotizacion.numero} guardada.")
+            return redirect("catalogo:cotizaciones")
+    else:
+        form = CotizacionForm()
+    return render(
+        request,
+        "catalogo/cotizaciones.html",
+        {"form": form, "cotizaciones": Cotizacion.objects.select_related("cliente").all()[:30]},
+    )
+
+
+def ordenes_trabajo(request):
+    if request.method == "POST":
+        form = OrdenTrabajoForm(request.POST)
+        if form.is_valid():
+            orden = form.save(commit=False)
+            orden.numero = f"OT-{timezone.now():%Y%m%d%H%M%S%f}"[:24]
+            orden.creado_por = request.user
+            orden.save()
+            messages.success(request, f"Orden {orden.numero} registrada.")
+            return redirect("catalogo:ordenes_trabajo")
+    else:
+        form = OrdenTrabajoForm()
+    return render(
+        request,
+        "catalogo/ordenes_trabajo.html",
+        {"form": form, "ordenes": OrdenTrabajo.objects.select_related("cliente").all()[:30]},
+    )
+
+
+def notas_credito(request):
+    if request.method == "POST":
+        form = NotaCreditoForm(request.POST)
+        if form.is_valid():
+            nota = form.save(commit=False)
+            nota.numero = f"NC-{timezone.now():%Y%m%d%H%M%S%f}"[:24]
+            nota.cliente = nota.venta.cliente
+            nota.creado_por = request.user
+            nota.save()
+            messages.success(request, f"Nota de crédito {nota.numero} guardada.")
+            return redirect("catalogo:notas_credito")
+    else:
+        form = NotaCreditoForm()
+    return render(
+        request,
+        "catalogo/notas_credito.html",
+        {"form": form, "notas": NotaCredito.objects.select_related("venta", "cliente").all()[:30]},
+    )
+
+
 def logistica(request):
     compras = DetalleCompra.objects.exclude(compra__estado=Compra.Estado.ANULADA)
     return render(
@@ -301,7 +505,7 @@ def logistica(request):
             "compras": Compra.objects.select_related("proveedor", "bodega").prefetch_related("detalles").order_by("-fecha")[:20],
             "costo_compras": suma_lineas(compras, "costo_unitario"),
             "movimientos": MovimientoInventario.objects.select_related("producto", "bodega").order_by("-fecha")[:20],
-            "stock_bajo": productos_con_indicadores().filter(stock_db__lte=F("punto_reorden")).order_by("stock_db")[:12],
+            "stock_bajo": productos_con_indicadores().filter(stock_db__lt=F("stock_minimo")).order_by("stock_db")[:12],
         },
     )
 
@@ -429,7 +633,7 @@ def reporte_stock_critico(request):
         except Exception:
             limite = ""
     else:
-        productos = productos.filter(stock_db__lte=F("punto_reorden"))
+        productos = productos.filter(stock_db__lt=F("stock_minimo"))
     productos = productos.order_by("stock_db", "nombre")
     return render(
         request,

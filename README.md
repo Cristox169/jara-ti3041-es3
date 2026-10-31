@@ -4,12 +4,10 @@ Sistema Django integral para una ferretería, construido sobre el proyecto ES2 o
 
 ## Ejecución portátil
 
-En Windows, ejecuta `iniciar_portatil.bat`. El iniciador crea el entorno virtual, instala las dependencias, prepara la base local, carga los datos y abre automáticamente:
+Desde PowerShell, crea el entorno e inicia la entrega portátil con:
 
 - Sitio: <http://127.0.0.1:8000/>
 - Administración: <http://127.0.0.1:8000/admin/>
-
-También se puede iniciar manualmente:
 
 ```powershell
 python -m venv .venv
@@ -19,7 +17,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe manage.py runserver
 ```
 
-Al ejecutar `python manage.py runserver`, el propio `manage.py` muestra inmediatamente el enlace <http://127.0.0.1:8000/> y Django vuelve a mostrarlo cuando el puerto queda activo. En Windows, la página también se abre automáticamente. El archivo `ABRIR_CRISSTEEL.url` permite volver a abrirla con doble clic mientras el servidor siga ejecutándose. Usa `python manage.py runserver --no-browser` si no deseas abrir el navegador.
+Al ejecutar `python manage.py runserver`, el propio `manage.py` muestra inmediatamente el enlace <http://127.0.0.1:8000/> y Django vuelve a mostrarlo cuando el puerto queda activo. Usa `python manage.py runserver --no-browser` si no deseas abrir el navegador.
 
 ## Base de datos MariaDB
 
@@ -35,23 +33,16 @@ Al ejecutar `python manage.py runserver`, el propio `manage.py` muestra inmediat
 
 ## Inicio con MariaDB
 
-Desde la carpeta del proyecto:
+Con MariaDB levantado en `127.0.0.1:3307`, ejecuta desde la carpeta del proyecto:
 
 ```powershell
-.\scripts\iniciar_mariadb.ps1
 .\.venv\Scripts\python.exe manage.py migrate
 .\.venv\Scripts\python.exe manage.py poblar_crisferreterias
 .\.venv\Scripts\python.exe manage.py runserver
 ```
 
-O ejecutar `iniciar_crissteel.bat`, que verifica dependencias, inicia MariaDB, aplica migraciones y carga los datos sin duplicarlos.
-
 La barra superior incluye el botón **Administración**. En una base nueva, el comando de poblamiento crea este acceso local:
-
-- Usuario: `admin`
-- Contraseña: `jarax`
-
-Estas credenciales son solo para desarrollo. Modifica `ADMIN_USERNAME`, `ADMIN_PASSWORD` y `ADMIN_EMAIL` en `.env` antes de publicar la aplicación.
+El usuario operativo inicial es `Cris` y su contraseña local es `2598`. Para un entorno productivo, cambia estos valores mediante `ADMIN_USERNAME`, `ADMIN_PASSWORD` y `ADMIN_EMAIL` en `.env`.
 
 ## Módulos
 
@@ -77,6 +68,17 @@ Estas credenciales son solo para desarrollo. Modifica `ADMIN_USERNAME`, `ADMIN_P
 - `/consultas/` — formulario `ModelForm` de clientes con validaciones y CSRF.
 
 La ficha de producto conserva los últimos tres productos visitados en la sesión del navegador.
+
+## Acceso y gestión CrisFerreterias
+
+- `/login/` — inicio de sesión visual con hero y panel glass.
+- La aplicación exige autenticación y cierra la sesión después de 7 minutos sin actividad (`SESSION_INACTIVITY_TIMEOUT = 420`).
+- El menú **Ventas** agrupa punto de venta, carro, cotizaciones, órdenes de trabajo, notas de crédito y ventas emitidas.
+- **Apps administrativas** reúne dashboard, abastecimiento, reportes, logística y finanzas.
+- Cada producto tiene `stock_minimo`, `stock_ideal`, brecha de reposición y cantidad sugerida para llegar al ideal.
+- `/abastecimiento/` filtra por texto, categoría y brecha; muestra proveedor preferente, plazo y unidades a comprar.
+- `/cotizaciones/`, `/ordenes-trabajo/` y `/notas-credito/` registran documentos comerciales vinculados a clientes y ventas.
+- `/carrito/` mantiene las cantidades en la sesión del usuario y permite actualizarlas antes de finalizar en el punto de venta.
 
 ## Verificación
 

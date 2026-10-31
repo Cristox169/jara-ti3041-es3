@@ -31,29 +31,33 @@
       </a>
 
       <nav class="nav-actions" aria-label="Navegación principal">
-        <a class="catalog-link" href="{% url 'catalogo:panel' %}">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16"></path></svg>
-          Panel
-        </a>
-        <a class="pos-nav-link{% if request.resolver_match.url_name == 'punto_venta' %} active{% endif %}" href="{% url 'catalogo:punto_venta' %}">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v5H4Z"></path><path d="M6 9v11h12V9M8 13h3M14 13h2M8 17h8"></path></svg>
-          Punto de venta
-        </a>
-        <a class="es3-nav-link{% if request.resolver_match.url_name == 'reporte_categorias' or request.resolver_match.url_name == 'reporte_stock_critico' %} active{% endif %}" href="{% url 'catalogo:reporte_categorias' %}">Reportes ES3</a>
+        <a class="home-nav-link{% if request.resolver_match.url_name == 'lista' %} active{% endif %}" href="{% url 'catalogo:lista' %}">Inicio</a>
+        <details class="nav-dropdown"{% if request.resolver_match.url_name in 'punto_venta carrito cotizaciones ordenes_trabajo notas_credito ventas' %} open{% endif %}>
+          <summary>Ventas <span aria-hidden="true">⌄</span></summary>
+          <div class="nav-dropdown-panel">
+            {% for item in NAV_VENTAS %}<a href="{{ item.url }}"{% if request.resolver_match.url_name == item.match %} class="active"{% endif %}>{{ item.label }}</a>{% endfor %}
+          </div>
+        </details>
+        <details class="nav-dropdown"{% if request.resolver_match.url_name in 'logistica rrhh produccion configuracion' %} open{% endif %}>
+          <summary>Operación <span aria-hidden="true">⌄</span></summary>
+          <div class="nav-dropdown-panel nav-dropdown-wide">
+            {% for item in NAV_OPERACION %}<a href="{{ item.url }}"{% if request.resolver_match.url_name == item.match %} class="active"{% endif %}>{{ item.label }}</a>{% endfor %}
+          </div>
+        </details>
+        <details class="nav-dropdown"{% if request.resolver_match.url_name in 'panel abastecimiento reporte_categorias reporte_stock_critico finanzas' %} open{% endif %}>
+          <summary>Análisis <span aria-hidden="true">⌄</span></summary>
+          <div class="nav-dropdown-panel nav-dropdown-wide">
+            {% for item in NAV_ANALITICA %}<a href="{{ item.url }}"{% if request.resolver_match.url_name == item.match %} class="active"{% endif %}>{{ item.label }}</a>{% endfor %}
+          </div>
+        </details>
         <a class="contact-nav-link{% if request.resolver_match.url_name == 'consulta_cliente' %} active{% endif %}" href="{% url 'catalogo:consulta_cliente' %}">Contacto</a>
         <a class="admin-nav-link" href="{% url 'admin:index' %}" aria-label="Abrir Administración de Django">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"></path></svg>
           Administración
         </a>
-        <details class="module-menu">
-          <summary>Módulos</summary>
-          <div class="module-menu-panel">
-            {% for item in NAV_ITEMS %}
-              <a href="{{ item.url }}"{% if request.resolver_match.url_name == item.match %} class="active" aria-current="page"{% endif %}>{{ item.label }}</a>
-            {% endfor %}
-          </div>
-        </details>
         <span class="stock-chip"><i></i> {{ DB_STATUS }}</span>
+        <span class="session-chip" title="La sesión vence tras {{ SESSION_TIMEOUT_MINUTES }} minutos sin actividad">{{ user.get_username }} · {{ SESSION_TIMEOUT_MINUTES }} min</span>
+        <form class="logout-form" method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout-link" type="submit">Salir</button></form>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar tema">
           <svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15a8 8 0 0 1-11-11 8.5 8.5 0 1 0 11 11Z"></path></svg>
           <svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>

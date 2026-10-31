@@ -20,3 +20,18 @@ Esta versión parte del catálogo CrisSteel de ES2 y agrega las funciones solici
 - `/consultas/`
 
 La Parte 2 de `uso_ia.md` debe ser revisada y redactada por el estudiante con sus propias palabras antes de la entrega.
+
+## Verificación solicitada por la pauta
+
+Se ejecutó `python manage.py test catalogo --verbosity 1` sobre una base de pruebas aislada. Las comprobaciones incluyen:
+
+- formulario de clientes con correo inválido, nombre/mensaje demasiado cortos y campos vacíos; la vista conserva el formulario y muestra mensajes claros sin guardar registros inválidos;
+- reporte por categorías comparado con agregaciones ORM de la base y con el contador de productos del changelist de `/admin/`;
+- reporte de stock crítico comparado con la suma de movimientos, considerando stock `0` cuando un producto no tiene movimientos;
+- ciclo web completo de producto: crear, editar y retirar mediante POST, con redirección al listado y reflejo de los cambios en la base.
+
+Resultado original: 12 pruebas ejecutadas correctamente; con la ampliación de autenticación y documentos, la suite actual alcanza 14 pruebas correctas.
+
+## Ampliación CrisFerreterias
+
+La versión posterior incorpora autenticación obligatoria, caducidad por siete minutos de inactividad, navegación agrupada por ventas y apps administrativas, campos de stock mínimo/ideal y brecha de reposición. También se agregaron carro de compra, cotizaciones, órdenes de trabajo, notas de crédito y un dashboard con carrusel de insights y filtros de abastecimiento.

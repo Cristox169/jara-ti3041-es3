@@ -30,6 +30,9 @@
         <dl class="detail-data">
           <div><dt>Precio catálogo</dt><dd>{{ producto.precio_formateado }}</dd></div>
           <div><dt>Stock actual</dt><dd>{{ producto.stock }} {{ producto.unidad }}</dd></div>
+          <div><dt>Stock mínimo</dt><dd>{{ producto.stock_minimo }} {{ producto.unidad }}</dd></div>
+          <div><dt>Stock ideal</dt><dd>{{ producto.stock_ideal }} {{ producto.unidad }}</dd></div>
+          <div><dt>Brecha de reposición</dt><dd>{{ producto.brecha_stock|floatformat:0 }} {{ producto.unidad }}</dd></div>
           <div><dt>Código interno</dt><dd>{{ producto.sku }}</dd></div>
           <div><dt>Marca</dt><dd>{{ producto.marca }}</dd></div>
         </dl>
@@ -41,6 +44,7 @@
         </ul>
 
         <a class="button button-dark" href="{% url 'catalogo:lista' %}#catalogo"><span aria-hidden="true">←</span> Volver al catálogo</a>
+        {% if producto.disponible %}<form class="detail-cart-form" method="post" action="{% url 'catalogo:carrito_agregar' producto.id %}">{% csrf_token %}<button class="button button-primary" type="submit">Agregar al carro</button></form>{% endif %}
         <a class="button button-outline" href="{% url 'catalogo:consulta_cliente' %}?producto={{ producto.id }}">Consultar por este producto</a>
       </div>
     </article>

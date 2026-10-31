@@ -1,0 +1,45 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesión · CrisSteel</title>
+  <link rel="icon" href="{% static 'catalogo/favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'catalogo/estilos.css' %}">
+</head>
+<body class="login-page">
+  <main class="login-shell">
+    <section class="login-hero" aria-label="CrisSteel y CrisFerreterias">
+      <img src="{% static 'catalogo/hero-crissteel.png' %}" alt="Herramientas y materiales CrisSteel">
+      <div class="login-hero-overlay"></div>
+      <div class="login-hero-copy">
+        <span class="eyebrow eyebrow-light"><i></i> CrisFerreterias · plataforma integral</span>
+        <h1>Decide mejor.<br><em>Construye más.</em></h1>
+        <p>Inventario, ventas, abastecimiento y operaciones conectadas en una sola vista.</p>
+        <div class="login-hero-pills"><span>Stock en tiempo real</span><span>Reportes filtrables</span><span>Sesión protegida</span></div>
+      </div>
+    </section>
+    <section class="login-panel glass-card">
+      <a class="brand login-brand" href="{% url 'login' %}"><span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M5 7h14l-2 4H7Z"></path><path d="M10 11v3c0 2-1 3-3 3h10c0-3-1-3-3-3v-3"></path><path d="M5 20h14"></path></svg></span><span><strong>CrisSteel</strong><small>Ferretería & soluciones</small></span></a>
+      <span class="eyebrow"><i></i> Acceso seguro</span>
+      <h2>Bienvenido de vuelta.</h2>
+      <p class="login-intro">Ingresa para consultar indicadores, documentos comerciales y brechas de abastecimiento.</p>
+      {% if request.GET.expired %}<div class="login-alert">Tu sesión terminó después de {{ 7 }} minutos sin actividad. Inicia sesión nuevamente.</div>{% endif %}
+      {% if form.non_field_errors %}<div class="login-alert">{{ form.non_field_errors }}</div>{% endif %}
+      <form method="post" class="login-form" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <label for="id_username">Usuario</label>
+        <input id="id_username" name="username" type="text" autocomplete="username" required autofocus placeholder="Tu usuario">
+        {% if form.username.errors %}<small class="field-error">{{ form.username.errors|striptags }}</small>{% endif %}
+        <label for="id_password">Contraseña</label>
+        <input id="id_password" name="password" type="password" autocomplete="current-password" required placeholder="Tu contraseña">
+        {% if form.password.errors %}<small class="field-error">{{ form.password.errors|striptags }}</small>{% endif %}
+        <button class="button button-primary login-submit" type="submit">Entrar al panel <span aria-hidden="true">→</span></button>
+      </form>
+      <div class="login-footnote"><span class="secure-dot"></span><span>Sesión con caducidad por inactividad · 7 minutos</span></div>
+    </section>
+  </main>
+</body>
+</html>

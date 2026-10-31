@@ -50,4 +50,27 @@
       if (emptyFilter) emptyFilter.hidden = count !== 0;
     });
   });
+
+  document.querySelectorAll('[data-carousel]').forEach((carousel) => {
+    const track = carousel.querySelector('.insight-track');
+    const cards = [...carousel.querySelectorAll('.insight-card')];
+    let active = 0;
+    const render = () => {
+      if (!track || !cards.length) return;
+      const compact = window.matchMedia('(max-width: 760px)').matches;
+      cards.forEach((card, index) => {
+        card.hidden = compact && index !== active;
+      });
+    };
+    carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => {
+      active = (active - 1 + cards.length) % cards.length;
+      render();
+    });
+    carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => {
+      active = (active + 1) % cards.length;
+      render();
+    });
+    window.addEventListener('resize', render);
+    render();
+  });
 })();

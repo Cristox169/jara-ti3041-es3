@@ -1,18 +1,44 @@
-CRISSTEEL · CRISFERRETERIAS · XAMPP
+CRISSTEEL · CRISFERRETERIAS
 
-1. Comprueba que XAMPP esté instalado en C:\xampp.
-2. Ejecuta iniciar_crissteel.bat.
-3. El iniciador activa MariaDB de XAMPP en el puerto 3306.
-4. Crea la base CrisFerreterias y el usuario de la aplicación.
-5. Aplica las migraciones y carga toda la información.
-6. Abre http://127.0.0.1:8000/
+OPCION A · ENTREGA PORTATIL
+
+1. Crea el entorno: python -m venv .venv
+2. Instala dependencias: .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+3. Migra y carga datos: .\.venv\Scripts\python.exe manage.py migrate
+4. Ejecuta: .\.venv\Scripts\python.exe manage.py poblar_crisferreterias
+5. Abre el sitio: .\.venv\Scripts\python.exe manage.py runserver
+
+OPCION B · MARIADB
+
+1. Copia .env.example como .env y configura la conexión.
+2. Levanta MariaDB 11.4 en el puerto 3307.
+3. Ejecuta migrate, poblar_crisferreterias y runserver con el intérprete del entorno virtual.
 
 ADMINISTRACION
 
-Usa el boton Administracion o abre http://127.0.0.1:8000/admin/
-Usuario inicial: admin
-Contrasena inicial: jarax
+Primero abre http://127.0.0.1:8000/login/ e inicia sesión.
+La sesión caduca tras 7 minutos sin actividad.
+Usa el botón Administración o abre http://127.0.0.1:8000/admin/
+Usuario operativo: Cris
+Contraseña operativa: 2598
+En producción, cambia estos valores en .env.
 
-Catálogo, imágenes, precios, inventario, compras, ventas, personas, producción y finanzas se consultan desde MariaDB de XAMPP. La aplicación no utiliza SQLite.
+Catálogo, ventas, inventario, personas, producción y finanzas funcionan con el mismo esquema ORM tanto en la entrega portátil como en MariaDB.
 
-Al ejecutar python manage.py runserver se mostrara el enlace http://127.0.0.1:8000/ cuando el servidor esté listo. Mantén la terminal abierta. También puedes hacer doble clic en ABRIR_CRISSTEEL.url mientras el servidor siga activo.
+ES3
+
+- CRUD web: /productos/nuevo/ y las acciones Editar/Eliminar del catálogo.
+- Reporte agrupado: /reportes/categorias/
+- Reporte de stock crítico: /reportes/stock-critico/
+- Formulario de clientes: /consultas/
+- La ficha de producto guarda los últimos tres productos visitados en la sesión.
+
+CRISFERRETERIAS
+
+- Stock mínimo e ideal por producto, brecha calculada y proveedor sugerido.
+- Dashboard filtrable: /panel/
+- Tabla de decisiones de compra: /abastecimiento/
+- Ventas: /punto-de-venta/ · /carrito/
+- Documentos: /cotizaciones/ · /ordenes-trabajo/ · /notas-credito/
+
+Al ejecutar python manage.py runserver se mostrara inmediatamente y al final el enlace http://127.0.0.1:8000/.

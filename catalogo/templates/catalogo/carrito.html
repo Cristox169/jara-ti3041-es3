@@ -1,0 +1,15 @@
+{% extends 'catalogo/base.html' %}
+{% block title %}Carro de compra | CrisSteel{% endblock %}
+{% block content %}
+<section class="module-hero compact"><div class="container"><span class="eyebrow eyebrow-light"><i></i> Venta omnicanal</span><h1>Carro de compra</h1><p>Revisa cantidades, disponibilidad y total antes de convertir tu carro en una venta.</p></div></section>
+<section class="container document-shell">
+  <div class="document-heading"><div><span class="eyebrow"><i></i> Sesión actual</span><h2>{{ total_unidades }} unidades · ${{ total|floatformat:0 }}</h2></div><a class="button button-outline" href="{% url 'catalogo:punto_venta' %}">Agregar productos</a></div>
+  {% if items %}
+  <form method="post" action="{% url 'catalogo:carrito_actualizar' %}" class="table-card glass-card">
+    {% csrf_token %}<table class="business-table"><thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th></th></tr></thead><tbody>
+    {% for item in items %}<tr><td><strong>{{ item.producto.nombre }}</strong><small>{{ item.producto.sku }}</small></td><td>${{ item.precio|floatformat:0 }}</td><td><input class="table-number" type="number" min="0" max="{{ item.producto.stock }}" name="cantidad_{{ item.producto.id }}" value="{{ item.cantidad }}"></td><td><strong>${{ item.subtotal|floatformat:0 }}</strong></td><td><a href="{% url 'catalogo:detalle' item.producto.id %}">Ver ficha</a></td></tr>{% endfor %}
+    </tbody></table><div class="document-actions"><button class="button button-primary" type="submit">Actualizar carro</button><a class="button button-dark" href="{% url 'catalogo:punto_venta' %}">Finalizar en punto de venta</a></div>
+  </form>
+  {% else %}<div class="empty-state glass-card"><span>🛒</span><h2>Tu carro está vacío</h2><p>Agrega productos desde el punto de venta para comenzar.</p><a class="button button-primary" href="{% url 'catalogo:punto_venta' %}">Explorar productos</a></div>{% endif %}
+</section>
+{% endblock %}

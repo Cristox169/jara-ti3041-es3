@@ -54,6 +54,16 @@ class Producto(models.Model):
     )
     unidad = models.ForeignKey(UnidadMedida, on_delete=models.PROTECT, related_name="productos")
     punto_reorden = models.PositiveIntegerField(default=5)
+    stock_minimo = models.PositiveIntegerField(
+        "stock mínimo",
+        default=5,
+        help_text="Nivel que activa la reposición y la alerta de compra.",
+    )
+    stock_ideal = models.PositiveIntegerField(
+        "stock ideal",
+        default=20,
+        help_text="Nivel objetivo después de reponer el producto.",
+    )
     imagen_url = models.URLField("URL de imagen", blank=True)
     imagen_base64 = models.TextField("imagen Base64", blank=True)
     activo = models.BooleanField(default=True)
@@ -85,6 +95,19 @@ class Producto(models.Model):
     @property
     def stock_total(self):
         return self.movimientos.aggregate(total=models.Sum("cantidad"))["total"] or Decimal("0")
+
+    @property
+    def brecha_stock(self):
+        """Unidades necesarias para llegar al stock ideal."""
+        return max(Decimal(self.stock_ideal) - self.stock_total, Decimal("0"))
+
+    @property
+    def requiere_reposicion(self):
+        return self.stock_total < self.stock_minimo
+
+    @property
+    def cantidad_reponer(self):
+        return self.brecha_stock
 
     @property
     def disponible(self):
@@ -643,5 +666,115 @@ class ConsultaCliente(models.Model):
 
     def __str__(self):
         return f"{self.nombre} · {self.correo} · {self.fecha:%Y-%m-%d}"
+
+
+class Cotizacion(models.Model):
+    class Estado(models.TextChoices):
+        BORRADOR = "BORRADOR", "Borrador"
+        ENVIADA = "ENVIADA", "Enviada"
+        ACEPTADA = "ACEPTADA", "Aceptada"
+        RECHAZADA = "RECHAZADA", "Rechazada"
+        VENCIDA = "VENCIDA", "Vencida"
+
+    numero = models.CharField(max_length=24, unique=True)
+    cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name="cotizaciones")
+    fecha = models.DateTimeField(default=timezone.now)
+    vigencia_dias = models.PositiveSmallIntegerField(default=15)
+    estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.BORRADOR)
+    observaciones = models.TextField(blank=True)
+    creado_por = models.ForeignKey(
+        "auth.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="cotizaciones_creadas"
+    )
+
+    class Meta:
+        ordering = ["-fecha", "-pk"]
+        verbose_name = "cotización"
+        verbose_name_plural = "cotizaciones"
+
+    @property
+    def total(self):
+        return sum((detalle.subtotal for detalle in self.detalles_cotizacion.all()), Decimal("0"))
+
+    def __str__(self):
+        return self.numero
+
+
+class DetalleCotizacion(models.Model):
+    cotizacion = models.ForeignKey(Cotizacion, on_delete=models.CASCADE, related_name="detalles_cotizacion")
+    producto = models.ForeignKey(Producto, on_delete=models.PROTECT, related_name="detalles_cotizacion")
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["cotizacion", "producto"], name="uq_cotizacion_producto")]
+        verbose_name = "detalle de cotización"
+        verbose_name_plural = "detalles de cotización"
+
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario
+
+
+class OrdenTrabajo(models.Model):
+    class Estado(models.TextChoices):
+        SOLICITADA = "SOLICITADA", "Solicitada"
+        PLANIFICADA = "PLANIFICADA", "Planificada"
+        EN_PROCESO = "EN_PROCESO", "En proceso"
+        TERMINADA = "TERMINADA", "Terminada"
+        CANCELADA = "CANCELADA", "Cancelada"
+
+    class Prioridad(models.TextChoices):
+        BAJA = "BAJA", "Baja"
+        MEDIA = "MEDIA", "Media"
+        ALTA = "ALTA", "Alta"
+        URGENTE = "URGENTE", "Urgente"
+
+    numero = models.CharField(max_length=24, unique=True)
+    cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name="ordenes_trabajo")
+    titulo = models.CharField(max_length=160)
+    descripcion = models.TextField()
+    estado = models.CharField(max_length=12, choices=Estado.choices, default=Estado.SOLICITADA)
+    prioridad = models.CharField(max_length=8, choices=Prioridad.choices, default=Prioridad.MEDIA)
+    fecha_solicitud = models.DateTimeField(default=timezone.now)
+    fecha_compromiso = models.DateField(null=True, blank=True)
+    costo_estimado = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    creado_por = models.ForeignKey(
+        "auth.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="ordenes_trabajo_creadas"
+    )
+
+    class Meta:
+        ordering = ["-fecha_solicitud", "-pk"]
+        verbose_name = "orden de trabajo"
+        verbose_name_plural = "órdenes de trabajo"
+
+    def __str__(self):
+        return f"{self.numero} · {self.titulo}"
+
+
+class NotaCredito(models.Model):
+    class Estado(models.TextChoices):
+        BORRADOR = "BORRADOR", "Borrador"
+        EMITIDA = "EMITIDA", "Emitida"
+        ANULADA = "ANULADA", "Anulada"
+
+    numero = models.CharField(max_length=24, unique=True)
+    venta = models.ForeignKey(Venta, on_delete=models.PROTECT, related_name="notas_credito")
+    cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name="notas_credito")
+    fecha = models.DateTimeField(default=timezone.now)
+    motivo = models.CharField(max_length=220)
+    monto = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
+    estado = models.CharField(max_length=8, choices=Estado.choices, default=Estado.BORRADOR)
+    referencia_tributaria = models.CharField(max_length=80, blank=True)
+    creado_por = models.ForeignKey(
+        "auth.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="notas_credito_creadas"
+    )
+
+    class Meta:
+        ordering = ["-fecha", "-pk"]
+        verbose_name = "nota de crédito"
+        verbose_name_plural = "notas de crédito"
+
+    def __str__(self):
+        return self.numero
 
 

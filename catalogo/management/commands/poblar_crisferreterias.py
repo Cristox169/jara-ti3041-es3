@@ -150,6 +150,8 @@ class Command(BaseCommand):
                     "marca": marca,
                     "unidad": unidad,
                     "punto_reorden": 5,
+                    "stock_minimo": 5,
+                    "stock_ideal": 20,
                     "activo": True,
                 },
             )
@@ -496,10 +498,12 @@ class Command(BaseCommand):
             },
         )
 
-        usuario_admin = os.getenv("ADMIN_USERNAME", "admin")
-        clave_admin = os.getenv("ADMIN_PASSWORD", "jarax")
+        usuario_admin = os.getenv("ADMIN_USERNAME", "Cris")
+        clave_admin = os.getenv("ADMIN_PASSWORD", "2598")
         correo_admin = os.getenv("ADMIN_EMAIL", "admin@localhost")
         modelo_usuario = get_user_model()
+        if usuario_admin.lower() != "admin":
+            modelo_usuario.objects.filter(username="admin").update(is_active=False)
         administrador, creado = modelo_usuario.objects.get_or_create(
             username=usuario_admin,
             defaults={"email": correo_admin},
@@ -507,8 +511,7 @@ class Command(BaseCommand):
         administrador.is_staff = True
         administrador.is_superuser = True
         administrador.is_active = True
-        if creado:
-            administrador.set_password(clave_admin)
+        administrador.set_password(clave_admin)
         administrador.save()
 
         self.stdout.write(
