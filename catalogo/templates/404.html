@@ -1,0 +1,14 @@
+{% extends 'catalogo/base.html' %}
+
+{% block title %}Producto no encontrado | CrisSteel{% endblock %}
+
+{% block content %}
+  <section class="container detail-shell">
+    <article class="empty-filter glass-card">
+      <span aria-hidden="true">404</span>
+      <h1>Esta ficha no está en el catálogo.</h1>
+      <p>El producto pudo cambiar de código o ya no encontrarse disponible.</p>
+      <a class="button button-dark" href="{% url 'catalogo:lista' %}">Volver al catálogo</a>
+    </article>
+  </section>
+{% endblock %}

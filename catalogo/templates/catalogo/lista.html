@@ -1,0 +1,102 @@
+{% extends 'catalogo/base.html' %}
+{% load static %}
+
+{% block title %}Catálogo | CrisSteel{% endblock %}
+
+{% block content %}
+  <section class="catalog-hero">
+    <img class="hero-image" src="{% static 'catalogo/hero-crissteel.png' %}" alt="Taladro, martillo, guantes, brocha y perfiles de acero sobre una mesa de trabajo">
+    <div class="hero-overlay" aria-hidden="true"></div>
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <span class="eyebrow eyebrow-light"><i></i> Catálogo + base de datos</span>
+        <h1>Todo para construir.<br><em>En un solo lugar.</em></h1>
+        <p>Encuentra herramientas y materiales, revisa su stock y arma tu compra al instante en el nuevo punto de venta CrisSteel.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="{% url 'catalogo:punto_venta' %}">Comenzar una compra <span aria-hidden="true">→</span></a>
+          <a class="button button-outline" href="#catalogo">Explorar catálogo <span aria-hidden="true">↓</span></a>
+        </div>
+        <ul class="hero-points">
+          <li><span>✓</span> {{ resumen.con_stock }} productos con stock</li>
+          <li><span>✓</span> Datos administrados con Django Admin</li>
+          <li><span>✓</span> Información consultada desde la BD</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="container stats-grid" aria-label="Resumen del catálogo">
+    <article class="stat-card glass-card">
+      <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7 12 3l8 4v10l-8 4-8-4Z"></path><path d="m4 7 8 4 8-4M12 11v10"></path></svg></span>
+      <div><strong>{{ resumen.total }}</strong><span>productos</span></div>
+      <small>Catálogo completo</small>
+    </article>
+    <article class="stat-card glass-card">
+      <span class="stat-icon stat-icon-success" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg></span>
+      <div><strong>{{ resumen.con_stock }}</strong><span>con stock</span></div>
+      <small>Listos para cotizar</small>
+    </article>
+    <article class="stat-card glass-card">
+      <span class="stat-icon stat-icon-steel" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4Z"></path><path d="M4 11h16M9 6v5M15 11v7"></path></svg></span>
+      <div><strong>{{ resumen.categorias }}</strong><span>categorías</span></div>
+      <small>Todo en un lugar</small>
+    </article>
+  </section>
+
+  <section class="container catalog-section" id="catalogo" aria-labelledby="catalog-title">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow"><i></i> Nuestro inventario</span>
+        <h2 id="catalog-title">Encuentra lo que necesitas.</h2>
+      </div>
+      <p>Selecciona una ficha para revisar sus características, precio y disponibilidad. Los productos se consultan desde la base de datos mediante el ORM de Django.</p>
+    </div>
+
+    <div class="filter-panel glass-card" aria-label="Filtros del catálogo">
+      <div class="data-source-note"><strong>✓ Inventario conectado</strong><span>{{ origen_datos }}</span></div>
+      <div class="filter-heading">
+        <div><span class="filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"></path></svg></span><span>Filtrar por categoría</span></div>
+        <span class="visible-counter"><strong id="visible-count">{{ resumen.total }}</strong> fichas visibles</span>
+      </div>
+      <div class="filter-buttons" role="group" aria-label="Categorías">
+        <button class="filter-button active" type="button" data-filter="todos" aria-pressed="true">Todos <span>{{ resumen.total }}</span></button>
+        {% for categoria in categorias %}
+          <button class="filter-button" type="button" data-filter="{{ categoria.slug }}" aria-pressed="false">{{ categoria.nombre }} <span>{{ categoria.cantidad }}</span></button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="product-grid" aria-live="polite">
+      {% for producto in productos %}
+        <article class="product-card{% if not producto.disponible %} is-unavailable{% endif %}" data-product-card data-category="{{ producto.slug_categoria }}">
+          <div class="product-image-frame">
+            <img src="{{ producto.imagen_base64 }}" alt="{{ producto.nombre }}" loading="lazy" decoding="async">
+            <span class="product-icon category-{{ producto.slug_categoria }}" aria-hidden="true">{% include 'catalogo/includes/icono_categoria.html' %}</span>
+            {% if producto.disponible %}
+              <span class="stock-badge in-stock"><i></i> En stock</span>
+            {% else %}
+              <span class="stock-badge out-stock"><i></i> Agotado</span>
+            {% endif %}
+          </div>
+          <div class="product-body">
+            <span class="category">{{ producto.categoria }}</span>
+            <h3>{{ producto.nombre }}</h3>
+            <p>{{ producto.descripcion }}</p>
+          </div>
+          <div class="product-meta">
+            <span><small>Precio</small><strong>{{ producto.precio_formateado }}</strong></span>
+            <span><small>Stock</small><strong>{{ producto.stock }} un.</strong></span>
+          </div>
+          <a class="detail-link" href="{% url 'catalogo:detalle' producto.id %}">
+            Ver ficha técnica
+            <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+          </a>
+        </article>
+      {% endfor %}
+    </div>
+
+    <div class="empty-filter glass-card" id="empty-filter" hidden>
+      <span aria-hidden="true">⌕</span><h3>No hay productos en esta categoría.</h3><p>Prueba seleccionando otro filtro.</p>
+    </div>
+  </section>
+{% endblock %}

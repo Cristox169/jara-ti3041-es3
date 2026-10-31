@@ -1,0 +1,442 @@
+[
+  {
+    "model": "catalogo.producto",
+    "pk": 1,
+    "fields": {
+      "nombre": "Taladro percutor 13 mm",
+      "categoria": "Herramientas eléctricas",
+      "precio": 64990,
+      "stock": 12,
+      "descripcion": "Taladro de 710 W con velocidad variable y función de percusión."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 2,
+    "fields": {
+      "nombre": "Esmeril angular 4 1/2 pulgadas",
+      "categoria": "Herramientas eléctricas",
+      "precio": 49990,
+      "stock": 9,
+      "descripcion": "Esmeril compacto de 850 W para corte y desbaste de metal."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 3,
+    "fields": {
+      "nombre": "Sierra circular 7 1/4 pulgadas",
+      "categoria": "Herramientas eléctricas",
+      "precio": 89990,
+      "stock": 5,
+      "descripcion": "Sierra de 1.400 W con guía paralela y ajuste de profundidad."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 4,
+    "fields": {
+      "nombre": "Lijadora orbital 1/4 hoja",
+      "categoria": "Herramientas eléctricas",
+      "precio": 42990,
+      "stock": 0,
+      "descripcion": "Lijadora de baja vibración con depósito recolector de polvo."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 5,
+    "fields": {
+      "nombre": "Rotomartillo SDS Plus",
+      "categoria": "Herramientas eléctricas",
+      "precio": 104990,
+      "stock": 4,
+      "descripcion": "Rotomartillo de 800 W con tres modos de operación."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 6,
+    "fields": {
+      "nombre": "Atornillador inalámbrico 12 V",
+      "categoria": "Herramientas eléctricas",
+      "precio": 54990,
+      "stock": 11,
+      "descripcion": "Atornillador compacto con batería de litio y luz LED."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 7,
+    "fields": {
+      "nombre": "Martillo carpintero 16 oz",
+      "categoria": "Herramientas manuales",
+      "precio": 12990,
+      "stock": 18,
+      "descripcion": "Martillo de acero forjado con mango ergonómico antideslizante."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 8,
+    "fields": {
+      "nombre": "Juego de destornilladores 6 piezas",
+      "categoria": "Herramientas manuales",
+      "precio": 14990,
+      "stock": 24,
+      "descripcion": "Set de puntas planas y Phillips con mangos de goma."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 9,
+    "fields": {
+      "nombre": "Alicate universal 8 pulgadas",
+      "categoria": "Herramientas manuales",
+      "precio": 10990,
+      "stock": 15,
+      "descripcion": "Alicate de acero al carbono con zona de corte reforzada."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 10,
+    "fields": {
+      "nombre": "Llave ajustable 10 pulgadas",
+      "categoria": "Herramientas manuales",
+      "precio": 13990,
+      "stock": 10,
+      "descripcion": "Llave cromada con apertura graduada y empuñadura cómoda."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 11,
+    "fields": {
+      "nombre": "Serrucho carpintero 20 pulgadas",
+      "categoria": "Herramientas manuales",
+      "precio": 11990,
+      "stock": 0,
+      "descripcion": "Serrucho de triple filo para cortes rápidos en madera."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 12,
+    "fields": {
+      "nombre": "Nivel de aluminio 60 cm",
+      "categoria": "Herramientas manuales",
+      "precio": 15990,
+      "stock": 8,
+      "descripcion": "Nivel liviano con tres burbujas de alta visibilidad."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 13,
+    "fields": {
+      "nombre": "Huincha de medir 5 m",
+      "categoria": "Herramientas manuales",
+      "precio": 6990,
+      "stock": 31,
+      "descripcion": "Cinta métrica engomada con freno y clip metálico."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 14,
+    "fields": {
+      "nombre": "Juego llaves punta corona 8 piezas",
+      "categoria": "Herramientas manuales",
+      "precio": 27990,
+      "stock": 6,
+      "descripcion": "Juego métrico de acero cromo vanadio con soporte."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 15,
+    "fields": {
+      "nombre": "Caja tornillos drywall 1 pulgada",
+      "categoria": "Fijaciones y adhesivos",
+      "precio": 8990,
+      "stock": 30,
+      "descripcion": "Tornillos fosfatados de punta fina, caja de 500 unidades."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 16,
+    "fields": {
+      "nombre": "Tarugos nylon 8 mm - 100 unidades",
+      "categoria": "Fijaciones y adhesivos",
+      "precio": 5990,
+      "stock": 27,
+      "descripcion": "Tarugos de expansión para fijaciones en hormigón y ladrillo."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 17,
+    "fields": {
+      "nombre": "Clavos 2 pulgadas - 1 kg",
+      "categoria": "Fijaciones y adhesivos",
+      "precio": 4990,
+      "stock": 19,
+      "descripcion": "Clavos de acero para trabajos generales de carpintería."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 18,
+    "fields": {
+      "nombre": "Pernos hexagonales M8 - 50 unidades",
+      "categoria": "Fijaciones y adhesivos",
+      "precio": 12990,
+      "stock": 0,
+      "descripcion": "Pernos zincados con tuerca y golilla para uniones firmes."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 19,
+    "fields": {
+      "nombre": "Adhesivo de montaje 300 ml",
+      "categoria": "Fijaciones y adhesivos",
+      "precio": 7990,
+      "stock": 13,
+      "descripcion": "Adhesivo de agarre inmediato para interiores y exteriores."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 20,
+    "fields": {
+      "nombre": "Silicona universal transparente",
+      "categoria": "Fijaciones y adhesivos",
+      "precio": 4990,
+      "stock": 22,
+      "descripcion": "Sellador de 280 ml resistente a humedad y cambios de temperatura."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 21,
+    "fields": {
+      "nombre": "Esmalte sintético blanco 1 galón",
+      "categoria": "Pinturas y terminaciones",
+      "precio": 32990,
+      "stock": 7,
+      "descripcion": "Esmalte de alto brillo para madera y superficies metálicas."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 22,
+    "fields": {
+      "nombre": "Látex interior blanco 1 galón",
+      "categoria": "Pinturas y terminaciones",
+      "precio": 24990,
+      "stock": 14,
+      "descripcion": "Pintura de terminación mate, buen cubrimiento y secado rápido."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 23,
+    "fields": {
+      "nombre": "Barniz marino brillante 1 L",
+      "categoria": "Pinturas y terminaciones",
+      "precio": 13990,
+      "stock": 0,
+      "descripcion": "Barniz protector con filtro UV para madera exterior."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 24,
+    "fields": {
+      "nombre": "Brocha profesional 3 pulgadas",
+      "categoria": "Pinturas y terminaciones",
+      "precio": 6990,
+      "stock": 21,
+      "descripcion": "Brocha de cerdas mixtas con mango de madera barnizada."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 25,
+    "fields": {
+      "nombre": "Rodillo antigota 23 cm",
+      "categoria": "Pinturas y terminaciones",
+      "precio": 7990,
+      "stock": 18,
+      "descripcion": "Rodillo para muros lisos y semilisos con mango reutilizable."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 26,
+    "fields": {
+      "nombre": "Diluyente sintético 1 L",
+      "categoria": "Pinturas y terminaciones",
+      "precio": 4990,
+      "stock": 16,
+      "descripcion": "Solvente para diluir esmaltes sintéticos y limpiar herramientas."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 27,
+    "fields": {
+      "nombre": "Casco de seguridad amarillo",
+      "categoria": "Seguridad industrial",
+      "precio": 8990,
+      "stock": 25,
+      "descripcion": "Casco liviano con arnés regulable y canal para accesorios."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 28,
+    "fields": {
+      "nombre": "Lentes de seguridad transparentes",
+      "categoria": "Seguridad industrial",
+      "precio": 3990,
+      "stock": 38,
+      "descripcion": "Protección ocular envolvente con filtro UV y patillas flexibles."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 29,
+    "fields": {
+      "nombre": "Guantes cabritilla reforzados",
+      "categoria": "Seguridad industrial",
+      "precio": 6990,
+      "stock": 34,
+      "descripcion": "Guantes de cuero suave con refuerzo en palma para faenas."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 30,
+    "fields": {
+      "nombre": "Protector auditivo tipo copa",
+      "categoria": "Seguridad industrial",
+      "precio": 14990,
+      "stock": 0,
+      "descripcion": "Protector ajustable con almohadillas acolchadas y buen sellado."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 31,
+    "fields": {
+      "nombre": "Mascarilla para polvo reutilizable",
+      "categoria": "Seguridad industrial",
+      "precio": 9990,
+      "stock": 12,
+      "descripcion": "Media máscara lavable con filtros reemplazables incluidos."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 32,
+    "fields": {
+      "nombre": "Disco de corte metal 4 1/2 pulgadas",
+      "categoria": "Construcción",
+      "precio": 1490,
+      "stock": 50,
+      "descripcion": "Disco abrasivo delgado para cortes precisos en acero."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 33,
+    "fields": {
+      "nombre": "Cemento uso general 25 kg",
+      "categoria": "Construcción",
+      "precio": 6990,
+      "stock": 42,
+      "descripcion": "Cemento para hormigones, morteros y trabajos de albañilería."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 34,
+    "fields": {
+      "nombre": "Mortero pega cerámico 25 kg",
+      "categoria": "Construcción",
+      "precio": 8490,
+      "stock": 20,
+      "descripcion": "Adhesivo cementicio para cerámicas en pisos y muros interiores."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 35,
+    "fields": {
+      "nombre": "Espátula acero inoxidable 4 pulgadas",
+      "categoria": "Construcción",
+      "precio": 5990,
+      "stock": 17,
+      "descripcion": "Espátula flexible para aplicar pasta muro y retirar pintura."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 36,
+    "fields": {
+      "nombre": "Alargador eléctrico 10 m 2P+T",
+      "categoria": "Electricidad",
+      "precio": 21990,
+      "stock": 9,
+      "descripcion": "Extensión reforzada con toma a tierra para uso doméstico."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 37,
+    "fields": {
+      "nombre": "Cinta aisladora negra 18 m",
+      "categoria": "Electricidad",
+      "precio": 1490,
+      "stock": 50,
+      "descripcion": "Cinta de PVC flexible para aislamiento eléctrico general."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 38,
+    "fields": {
+      "nombre": "Ampolleta LED 12 W E27",
+      "categoria": "Electricidad",
+      "precio": 2990,
+      "stock": 0,
+      "descripcion": "Ampolleta luz fría de bajo consumo y larga vida útil."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 39,
+    "fields": {
+      "nombre": "Llave de paso esfera 1/2 pulgada",
+      "categoria": "Gasfitería",
+      "precio": 6990,
+      "stock": 14,
+      "descripcion": "Válvula de bronce de paso total para redes de agua."
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 40,
+    "fields": {
+      "nombre": "Flexible agua HI-HI 40 cm",
+      "categoria": "Gasfitería",
+      "precio": 3990,
+      "stock": 26,
+      "descripcion": "Conector flexible trenzado de acero inoxidable para grifería."
+    }
+  }
+]

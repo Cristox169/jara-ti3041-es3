@@ -1,0 +1,24 @@
+{% extends 'catalogo/base.html' %}
+{% block title %}Panel integral | CrisSteel{% endblock %}
+{% block content %}
+<section class="module-hero"><div class="container"><span class="eyebrow eyebrow-light"><i></i> Gestión conectada</span><h1>Todo CrisSteel, en una sola vista.</h1><p>Indicadores de ventas, inventario, personas, producción y finanzas consultados directamente desde {{ DB_ENGINE_LABEL }}.</p></div></section>
+<section class="container module-content">
+  <div class="business-metrics">
+    <article><small>Ingresos</small><strong>${{ ingresos|floatformat:0 }}</strong><span>{{ ventas }} ventas registradas</span></article>
+    <article><small>Margen bruto</small><strong>${{ margen|floatformat:0 }}</strong><span>Ventas menos costo directo</span></article>
+    <article><small>Inventario</small><strong>{{ stock|floatformat:0 }}</strong><span>{{ productos }} productos activos</span></article>
+    <article><small>Equipo</small><strong>{{ empleados }}</strong><span>personas activas</span></article>
+  </div>
+  <div class="module-grid two">
+    <article class="module-card"><div class="module-title"><div><span class="eyebrow">Prioridad</span><h2>Stock bajo</h2></div><a href="{% url 'catalogo:logistica' %}">Ver logística</a></div><div class="compact-list">{% for producto in stock_bajo %}<p><span><b>{{ producto.sku }}</b>{{ producto.nombre }}</span><strong>{{ producto.stock_db|floatformat:0 }} {{ producto.unidad.simbolo }}</strong></p>{% empty %}<p>Sin alertas de reposición.</p>{% endfor %}</div></article>
+    <article class="module-card"><div class="module-title"><div><span class="eyebrow">Actividad</span><h2>Últimas ventas</h2></div><a href="{% url 'catalogo:ventas' %}">Ver ventas</a></div><div class="compact-list">{% for venta in ultimas_ventas %}<p><span><b>{{ venta.numero }}</b>{{ venta.cliente.nombre }}</span><strong>${{ venta.total|floatformat:0 }}</strong></p>{% empty %}<p>Aún no hay ventas.</p>{% endfor %}</div></article>
+  </div>
+  <div class="module-access-grid">
+    <a href="{% url 'catalogo:ventas' %}"><b>Ventas</b><span>Clientes, pagos y márgenes</span></a>
+    <a href="{% url 'catalogo:logistica' %}"><b>Logística</b><span>Bodegas, compras y stock</span></a>
+    <a href="{% url 'catalogo:rrhh' %}"><b>Personas</b><span>Contratos, turnos y nómina</span></a>
+    <a href="{% url 'catalogo:produccion' %}"><b>Producción</b><span>Recetas, órdenes y consumos</span></a>
+    <a href="{% url 'catalogo:finanzas' %}"><b>Finanzas</b><span>Ingresos, costos y gastos</span></a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'catalogo/base.html' %}
+{% block title %}Configuración | CrisSteel{% endblock %}
+{% block content %}
+<section class="module-hero compact"><div class="container"><span class="eyebrow eyebrow-light"><i></i> Sistema</span><h1>Configuración disponible</h1><p>Estado del entorno y accesos administrativos de CrisFerreterias.</p></div></section>
+<section class="container module-content">
+  <div class="business-metrics three"><article><small>Motor</small><strong>{{ motor }}</strong><span>{{ version }}</span></article><article><small>Base activa</small><strong>{{ base }}</strong><span>{{ caracteristicas }}</span></article><article><small>Modelos de negocio</small><strong>{{ modelos }}</strong><span>esquema normalizado</span></article></div>
+  <div class="module-title"><div><span class="eyebrow">Accesos</span><h2>Navegación completa</h2></div></div>
+  <div class="module-access-grid">{% for item in NAV_ITEMS %}<a href="{{ item.url }}"><b>{{ item.label }}</b><span>Abrir módulo</span></a>{% endfor %}</div>
+</section>
+{% endblock %}

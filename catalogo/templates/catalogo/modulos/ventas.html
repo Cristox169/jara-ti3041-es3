@@ -1,0 +1,10 @@
+{% extends 'catalogo/base.html' %}
+{% block title %}Ventas | CrisSteel{% endblock %}
+{% block content %}
+<section class="module-hero compact"><div class="container"><span class="eyebrow eyebrow-light"><i></i> Gestión comercial</span><h1>Ventas y rentabilidad</h1><p>Documentos, clientes, costos y margen calculados desde cada línea de venta.</p></div></section>
+<section class="container module-content">
+  <div class="business-metrics three"><article><small>Ingresos</small><strong>${{ ingresos|floatformat:0 }}</strong></article><article><small>Costos</small><strong>${{ costos|floatformat:0 }}</strong></article><article><small>Margen</small><strong>${{ margen|floatformat:0 }}</strong><span>{{ clientes }} clientes atendidos</span></article></div>
+  <div class="module-title"><div><span class="eyebrow">Registro comercial</span><h2>Ventas recientes</h2></div><a class="module-button" href="{% url 'catalogo:punto_venta' %}">Nueva venta</a></div>
+  <div class="table-wrap"><table class="business-table"><thead><tr><th>Documento</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th>Total</th></tr></thead><tbody>{% for venta in ventas %}<tr><td><b>{{ venta.numero }}</b></td><td>{{ venta.fecha|date:'d/m/Y H:i' }}</td><td>{{ venta.cliente.nombre }}</td><td><span class="status-tag">{{ venta.get_estado_display }}</span></td><td><b>${{ venta.total|floatformat:0 }}</b></td></tr>{% empty %}<tr><td colspan="5">No existen ventas registradas.</td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endblock %}

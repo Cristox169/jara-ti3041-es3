@@ -1,0 +1,15 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+.DS_Store
+staticfiles/
+scripts/.cache_commons/
+.django-server.*.log
+

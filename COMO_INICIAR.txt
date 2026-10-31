@@ -1,0 +1,18 @@
+CRISSTEEL · CRISFERRETERIAS · XAMPP
+
+1. Comprueba que XAMPP esté instalado en C:\xampp.
+2. Ejecuta iniciar_crissteel.bat.
+3. El iniciador activa MariaDB de XAMPP en el puerto 3306.
+4. Crea la base CrisFerreterias y el usuario de la aplicación.
+5. Aplica las migraciones y carga toda la información.
+6. Abre http://127.0.0.1:8000/
+
+ADMINISTRACION
+
+Usa el boton Administracion o abre http://127.0.0.1:8000/admin/
+Usuario inicial: admin
+Contrasena inicial: jarax
+
+Catálogo, imágenes, precios, inventario, compras, ventas, personas, producción y finanzas se consultan desde MariaDB de XAMPP. La aplicación no utiliza SQLite.
+
+Al ejecutar python manage.py runserver se mostrara el enlace http://127.0.0.1:8000/ cuando el servidor esté listo. Mantén la terminal abierta. También puedes hacer doble clic en ABRIR_CRISSTEEL.url mientras el servidor siga activo.

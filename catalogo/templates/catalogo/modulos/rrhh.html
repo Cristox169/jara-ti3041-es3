@@ -1,0 +1,10 @@
+{% extends 'catalogo/base.html' %}
+{% block title %}Personas | CrisSteel{% endblock %}
+{% block content %}
+<section class="module-hero compact"><div class="container"><span class="eyebrow eyebrow-light"><i></i> Recursos humanos</span><h1>Personas y contratos</h1><p>Dotación, cargos, departamentos y costo mensual desde relaciones históricas.</p></div></section>
+<section class="container module-content">
+  <div class="business-metrics three"><article><small>Dotación activa</small><strong>{{ empleados }}</strong></article><article><small>Departamentos</small><strong>{{ departamentos }}</strong></article><article><small>Nómina base</small><strong>${{ nomina|floatformat:0 }}</strong></article></div>
+  <div class="module-title"><div><span class="eyebrow">Equipo</span><h2>Contratos vigentes</h2></div><a href="{% url 'admin:catalogo_empleado_add' %}">Agregar persona</a></div>
+  <div class="table-wrap"><table class="business-table"><thead><tr><th>Persona</th><th>Departamento</th><th>Cargo</th><th>Ingreso</th><th>Jornada</th><th>Sueldo base</th></tr></thead><tbody>{% for contrato in contratos %}<tr><td><b>{{ contrato.empleado }}</b><small>{{ contrato.empleado.rut }}</small></td><td>{{ contrato.cargo.departamento.nombre }}</td><td>{{ contrato.cargo.nombre }}</td><td>{{ contrato.fecha_inicio|date:'d/m/Y' }}</td><td>{{ contrato.horas_semanales }} h</td><td>${{ contrato.sueldo_base|floatformat:0 }}</td></tr>{% empty %}<tr><td colspan="6">No hay contratos vigentes.</td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endblock %}

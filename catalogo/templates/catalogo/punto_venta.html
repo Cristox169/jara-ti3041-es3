@@ -1,0 +1,169 @@
+{% extends 'catalogo/base.html' %}
+{% load static %}
+
+{% block title %}Punto de venta | CrisSteel{% endblock %}
+{% block body_class %}pos-page{% endblock %}
+
+{% block content %}
+<section class="container pos-workspace">
+    <form id="pos-security" hidden>{% csrf_token %}</form>
+    <div class="pos-catalog-panel">
+      <div class="pos-controls glass-card">
+        <div class="pos-toolbar-heading">
+          <div>
+            <span class="eyebrow"><i></i> Caja {{ caja }} · Venta rápida</span>
+            <h1>Punto de venta</h1>
+            <p>Selecciona productos para preparar la compra.</p>
+          </div>
+          <div class="pos-session-card" aria-label="Estado de la caja">
+            <span class="pos-session-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5 9.2 17 19 7"></path></svg></span>
+            <span><small>Estado de caja</small><strong>Abierta</strong></span>
+          </div>
+        </div>
+        <label class="pos-search-wrap" for="pos-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16.2 16.2 4 4"></path></svg>
+          <input id="pos-search" type="search" placeholder="Buscar producto por nombre…" autocomplete="off">
+          <kbd>Ctrl K</kbd>
+        </label>
+
+        <div class="pos-filter-row" role="group" aria-label="Filtrar productos por categoría">
+          <button class="pos-filter-button active" type="button" data-pos-filter="todos" aria-pressed="true">Todos <span>{{ resumen.total }}</span></button>
+          {% for categoria in categorias %}
+            <button class="pos-filter-button" type="button" data-pos-filter="{{ categoria.slug }}" aria-pressed="false">{{ categoria.nombre }} <span>{{ categoria.cantidad }}</span></button>
+          {% endfor %}
+        </div>
+
+        <div class="pos-result-summary">
+          <span><strong id="pos-visible-count">{{ resumen.total }}</strong> productos visibles</span>
+          <span><i></i> Haz clic en una ficha para agregarla</span>
+        </div>
+      </div>
+
+      <div class="pos-product-grid" id="pos-products" aria-live="polite">
+        {% for producto in productos %}
+          <button
+            class="pos-product-card category-{{ producto.slug_categoria }}{% if not producto.disponible %} sold-out{% endif %}"
+            type="button"
+            data-pos-product
+            data-id="{{ producto.id }}"
+            data-name="{{ producto.nombre }}"
+            data-category="{{ producto.slug_categoria }}"
+            data-price="{{ producto.precio }}"
+            data-stock="{{ producto.stock }}"
+            aria-label="{% if producto.disponible %}Agregar {{ producto.nombre }} al carro{% else %}{{ producto.nombre }}, agotado{% endif %}"
+            {% if not producto.disponible %}disabled{% endif %}
+          >
+            <span class="pos-product-photo">
+              <img src="{{ producto.imagen_base64 }}" alt="" loading="lazy" decoding="async">
+              <span class="pos-product-icon" aria-hidden="true">{% include 'catalogo/includes/icono_categoria.html' %}</span>
+            </span>
+            <span class="pos-product-copy">
+              <small>{{ producto.categoria_corta }}</small>
+              <strong>{{ producto.nombre }}</strong>
+              <span>{{ producto.precio_formateado }}</span>
+            </span>
+            {% if producto.disponible %}
+              <span class="pos-product-stock">{{ producto.stock }} un.</span>
+              <span class="pos-add-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg></span>
+            {% else %}
+              <span class="pos-sold-label">Agotado</span>
+            {% endif %}
+          </button>
+        {% endfor %}
+      </div>
+
+      <div class="pos-empty-results glass-card" id="pos-empty-results" hidden>
+        <span aria-hidden="true">⌕</span>
+        <h2>No encontramos coincidencias.</h2>
+        <p>Prueba otro término o selecciona una categoría diferente.</p>
+      </div>
+    </div>
+
+    <aside class="pos-cart glass-card" aria-label="Carro de compra">
+      <header class="pos-cart-header">
+        <div>
+          <span class="pos-cart-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3 4h2l2.3 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 8H7"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle></svg>
+          </span>
+          <span><small>Venta actual</small><h2>Carro de compra</h2></span>
+        </div>
+        <span class="pos-cart-count" id="cart-count">0 productos</span>
+      </header>
+
+      <div class="pos-cart-items" id="cart-items" aria-live="polite">
+        <div class="pos-cart-empty" id="cart-empty">
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3 4h2l2.3 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 8H7"></path><path d="M9 10h8"></path></svg>
+          </span>
+          <h3>Tu carro está vacío</h3>
+          <p>Selecciona un producto del panel para comenzar la venta.</p>
+        </div>
+      </div>
+
+      <footer class="pos-cart-footer">
+        <div class="pos-cart-summary">
+          <p><span>Subtotal</span><strong id="cart-subtotal">$0</strong></p>
+          <p><span>Artículos</span><strong id="cart-units">0 unidades</strong></p>
+        </div>
+        <div class="pos-total">
+          <span>Total a pagar</span>
+          <strong id="cart-total">$0</strong>
+        </div>
+        <button class="pos-checkout-button" id="checkout-button" type="button" data-endpoint="{% url 'catalogo:registrar_venta_pos' %}" disabled>
+          <span>Finalizar compra</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+        </button>
+        <p class="pos-demo-note"><span aria-hidden="true">ⓘ</span> La venta y el movimiento de inventario se registran en {{ DB_ENGINE_LABEL }}.</p>
+      </footer>
+    </aside>
+  </section>
+
+  <div class="pos-toast" id="pos-toast" role="status" aria-live="polite">
+    <span aria-hidden="true">✓</span>
+    <strong>Producto agregado al carro</strong>
+  </div>
+
+  <dialog class="checkout-dialog" id="checkout-dialog" aria-labelledby="print-status">
+    <div class="checkout-modal">
+      <button class="receipt-close" id="receipt-close" type="button" aria-label="Cerrar comprobante">×</button>
+
+      <div class="printer-visual" aria-hidden="true">
+        <span class="printer-light"></span>
+        <svg viewBox="0 0 24 24"><path d="M6 9V3h12v6"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v7H6Z"></path></svg>
+      </div>
+      <p class="print-status" id="print-status">Imprimiendo comprobante…</p>
+      <div class="print-progress" aria-hidden="true"><span></span></div>
+
+      <article class="receipt-paper" id="receipt-paper">
+        <header class="receipt-header">
+          <span class="receipt-logo">CS</span>
+          <h2>CRISSTEEL</h2>
+          <p>Ferretería & soluciones</p>
+          <small>RUT 76.123.456-7 · Venta demostrativa</small>
+        </header>
+        <div class="receipt-meta">
+          <p><span>Boleta</span><strong id="receipt-number">CS-000000</strong></p>
+          <p><span>Fecha</span><strong id="receipt-date">--/--/----</strong></p>
+          <p><span>Caja</span><strong>{{ caja }}</strong></p>
+        </div>
+        <div class="receipt-table-head"><span>Producto</span><span>Total</span></div>
+        <div class="receipt-items" id="receipt-items"></div>
+        <div class="receipt-total"><span>Total</span><strong id="receipt-total">$0</strong></div>
+        <footer class="receipt-footer">
+          <strong>¡Gracias por construir con nosotros!</strong>
+          <p>Conserva este comprobante como respaldo.</p>
+          <div class="receipt-barcode" aria-hidden="true"></div>
+        </footer>
+      </article>
+
+      <div class="receipt-actions" id="receipt-actions" hidden>
+        <button class="button button-primary" id="new-sale" type="button">Nueva venta</button>
+        <button class="button receipt-secondary" id="receipt-continue" type="button">Seguir comprando</button>
+      </div>
+    </div>
+  </dialog>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'catalogo/pos.js' %}"></script>
+{% endblock %}

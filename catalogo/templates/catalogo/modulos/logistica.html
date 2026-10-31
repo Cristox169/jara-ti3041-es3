@@ -1,0 +1,11 @@
+{% extends 'catalogo/base.html' %}
+{% block title %}Logística | CrisSteel{% endblock %}
+{% block content %}
+<section class="module-hero compact"><div class="container"><span class="eyebrow eyebrow-light"><i></i> Abastecimiento</span><h1>Logística e inventario</h1><p>Existencias derivadas de movimientos, compras, bodegas y alertas de reposición.</p></div></section>
+<section class="container module-content">
+  <div class="business-metrics three">{% for bodega in bodegas %}<article><small>{{ bodega.codigo }}</small><strong>{{ bodega.stock|floatformat:0 }}</strong><span>{{ bodega.nombre }}</span></article>{% endfor %}</div>
+  <div class="module-grid two"><article class="module-card"><div class="module-title"><div><span class="eyebrow">Reposición</span><h2>Stock bajo</h2></div></div><div class="compact-list">{% for producto in stock_bajo %}<p><span><b>{{ producto.sku }}</b>{{ producto.nombre }}</span><strong>{{ producto.stock_db|floatformat:0 }}</strong></p>{% empty %}<p>Sin alertas.</p>{% endfor %}</div></article><article class="module-card"><div class="module-title"><div><span class="eyebrow">Compras</span><h2>Órdenes recientes</h2></div><b>${{ costo_compras|floatformat:0 }}</b></div><div class="compact-list">{% for compra in compras %}<p><span><b>{{ compra.numero }}</b>{{ compra.proveedor.razon_social }}</span><strong>${{ compra.total|floatformat:0 }}</strong></p>{% endfor %}</div></article></div>
+  <div class="module-title"><div><span class="eyebrow">Trazabilidad</span><h2>Últimos movimientos</h2></div><a href="{% url 'admin:catalogo_movimientoinventario_add' %}">Registrar ajuste</a></div>
+  <div class="table-wrap"><table class="business-table"><thead><tr><th>Fecha</th><th>Producto</th><th>Bodega</th><th>Tipo</th><th>Cantidad</th></tr></thead><tbody>{% for movimiento in movimientos %}<tr><td>{{ movimiento.fecha|date:'d/m/Y H:i' }}</td><td>{{ movimiento.producto.sku }} · {{ movimiento.producto.nombre }}</td><td>{{ movimiento.bodega.codigo }}</td><td>{{ movimiento.get_tipo_display }}</td><td><b>{{ movimiento.cantidad|floatformat:0 }}</b></td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endblock %}

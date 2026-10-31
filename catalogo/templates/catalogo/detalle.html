@@ -1,0 +1,51 @@
+{% extends 'catalogo/base.html' %}
+
+{% block title %}{{ producto.nombre }} | CrisSteel{% endblock %}
+
+{% block content %}
+  <section class="container detail-shell">
+    <nav class="breadcrumb" aria-label="Migas de pan">
+      <a href="{% url 'catalogo:lista' %}">Catálogo</a><span aria-hidden="true">/</span><span>{{ producto.categoria_corta }}</span>
+    </nav>
+
+    <article class="detail-card glass-card{% if not producto.disponible %} is-unavailable{% endif %}">
+      <div class="detail-visual category-{{ producto.slug_categoria }}">
+        <img class="detail-photo" src="{{ producto.imagen_base64 }}" alt="{{ producto.nombre }}">
+        <span class="detail-shade" aria-hidden="true"></span>
+        <span class="detail-code">{{ producto.sku }}</span>
+        <span class="detail-icon">{% include 'catalogo/includes/icono_categoria.html' %}</span>
+        <span class="detail-category">{{ producto.categoria_corta }}</span>
+      </div>
+
+      <div class="detail-content">
+        {% if producto.disponible %}
+          <span class="stock-badge in-stock"><i></i> Disponible</span>
+        {% else %}
+          <span class="stock-badge out-stock"><i></i> Temporalmente agotado</span>
+        {% endif %}
+        <span class="eyebrow"><i></i> {{ producto.categoria }}</span>
+        <h1>{{ producto.nombre }}</h1>
+        <p class="detail-description">{{ producto.descripcion }}</p>
+
+        <dl class="detail-data">
+          <div><dt>Precio catálogo</dt><dd>{{ producto.precio_formateado }}</dd></div>
+          <div><dt>Stock actual</dt><dd>{{ producto.stock }} {{ producto.unidad }}</dd></div>
+          <div><dt>Código interno</dt><dd>{{ producto.sku }}</dd></div>
+          <div><dt>Marca</dt><dd>{{ producto.marca }}</dd></div>
+        </dl>
+
+        <ul class="detail-points">
+          <li><span>✓</span> Información cargada desde la base de datos</li>
+          <li><span>✓</span> Precio expresado en pesos chilenos</li>
+          <li><span>✓</span> Disponibilidad actualizada en la ficha</li>
+        </ul>
+
+        <a class="button button-dark" href="{% url 'catalogo:lista' %}#catalogo"><span aria-hidden="true">←</span> Volver al catálogo</a>
+      </div>
+    </article>
+    <div class="module-grid two detail-related">
+      <article class="module-card"><div class="module-title"><div><span class="eyebrow">Disponibilidad</span><h2>Stock por bodega</h2></div></div><div class="compact-list">{% for bodega in stock_bodegas %}<p><span><b>{{ bodega.codigo }}</b>{{ bodega.nombre }}</span><strong>{{ bodega.stock|floatformat:0 }} {{ producto.unidad }}</strong></p>{% empty %}<p>Sin movimientos registrados.</p>{% endfor %}</div></article>
+      <article class="module-card"><div class="module-title"><div><span class="eyebrow">Abastecimiento</span><h2>Proveedores</h2></div></div><div class="compact-list">{% for relacion in proveedores %}<p><span><b>{{ relacion.proveedor.razon_social }}</b>{{ relacion.plazo_entrega_dias }} días de entrega</span><strong>${{ relacion.costo_ultimo|floatformat:0 }}</strong></p>{% empty %}<p>Sin proveedores relacionados.</p>{% endfor %}</div></article>
+    </div>
+  </section>
+{% endblock %}
